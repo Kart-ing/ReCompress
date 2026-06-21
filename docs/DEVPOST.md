@@ -9,7 +9,7 @@
 **ReCompress: rewrite-don't-delete context compression, distilled to 1.5B and extended to flat-context multi-turn**
 
 ## Tagline (Devpost "tagline" field)
-A 1.5B model that compresses prompts by *rewriting* them for your question — beats The Token Company's bear by ~50% on multi-hop QA — and then powers a multi-turn memory that keeps a 12-turn chat flat (184 tok) while a naive agent balloons to 1,482.
+A query-aware rewriting layer that extends compression into the regime deletion can't reach — distilled into a 1.5B model, then carried into multi-turn conversations to keep a 12-turn chat flat (184 tok) while a naive agent balloons to 1,482.
 
 ---
 
@@ -74,9 +74,9 @@ Pipeline: DeepSeek teacher → 5,000 query-aware compression pairs → LoRA fine
 
 ## Accomplishments we're proud of
 
-- A **1.5B model that beats the challenge sponsor's own product** at matched budget, with statistical significance, that **generalizes to a benchmark it never trained on** (2Wiki, +46%).
-- **We stress-tested our own headline before a judge could.** The teacher and solver are both DeepSeek (a circularity a sharp reviewer attacks first), so we **re-scored with an independent solver (Claude Sonnet)**: the gap is **invariant** — Δ vs bear = **+0.288** (independent) vs **+0.285** (in-family), CI excludes zero both ways. The win is not a same-family artifact.
-- A **unified system**: the same distilled compressor wins as a single-shot compressor *and* as a multi-turn memory engine (beating both DeepSeek and bear there).
+- A **1.5B model that recovers the query-aware regime bear cedes** — at matched budget, with statistical significance, **generalizing to a benchmark it never trained on** (2Wiki, +46%). It complements deletion rather than replacing it: deletion stays best for fast/verbatim/reusable; rewriting adds the query-specific case.
+- **We stress-tested our own headline before a judge could.** The teacher and solver are both DeepSeek (a circularity a sharp reviewer attacks first), so we **re-scored with an independent solver (Claude Sonnet)**: the gap is **invariant** — Δ vs bear = **+0.288** (independent) vs **+0.285** (in-family), CI excludes zero both ways. The result is not a same-family artifact.
+- A **unified system**: the same distilled compressor works as a single-shot compressor *and* as a multi-turn memory engine (the strongest backend of the three we tested, vs DeepSeek and bear).
 - **Research-grade rigor + intellectual honesty in 24h**: bootstrap CIs on every claim, a cross-solver audit, a mask-the-answer audit (measured *against ourselves*), 5 named experiments with a clear winner, three documented negative results, a conceptual finding (the "deletion ceiling"), a 13-figure visualization suite, and a custom multi-turn benchmark.
 
 ## What we learned
@@ -104,4 +104,4 @@ Pipeline: DeepSeek teacher → 5,000 query-aware compression pairs → LoRA fine
 - **Trained adapters + full experiment archive (all 5 experiments, incl. failures) + 13 figures:** in the repo (Git LFS)
 
 ## One-line differentiator (keep ready for the pitch + Q&A)
-> "LLMLingua **deletes** tokens; we **rewrite** them — distilled into a 1.5B (after five experiments — Hearth won) that beats The Token Company's own bear head-to-head with CIs across 4 benchmarks, *and* powers a multi-turn memory that keeps a 12-turn chat flat at 184 tokens while a naive agent hits 1,482."
+> "LLMLingua **deletes** tokens; we **rewrite** them — distilled into a 1.5B (after five experiments — Hearth won) that extends The Token Company's bear into the query-aware regime it cedes, measured head-to-head with CIs across 4 benchmarks, *and* powers a multi-turn memory that keeps a 12-turn chat flat at 184 tokens while a naive agent hits 1,482."
