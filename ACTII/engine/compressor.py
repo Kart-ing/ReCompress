@@ -20,4 +20,4 @@ def compress(text: str, question: str, ratio: float, use_llm: bool = True, exclu
             f"\nDo NOT include these facts (they are already stored separately): {exclude}"
             f"\nFocus on context, relationships, and details NOT covered above."
         )
-    return call(system, text, max_tokens=target + 20)
+    return call(system, text, max_tokens=target + 50)

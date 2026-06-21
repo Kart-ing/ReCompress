@@ -74,7 +74,7 @@ def repair_json(raw: str) -> dict | None:
         return json.loads(raw)
     except json.JSONDecodeError:
         pass
-    for suffix in ["}", '"}'  , '"}', '"}']:
+    for suffix in ["}", '"}']:
         try:
             return json.loads(raw + suffix)
         except json.JSONDecodeError:

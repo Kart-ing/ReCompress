@@ -39,34 +39,26 @@ class ReZeroSession:
             print(f"  [USER] {user[:80]}{'...' if len(user) > 80 else ''}")
 
         t0 = time.time()
-        old_trauma = self.trauma_extractor.get()
         self.trauma_extractor.update(user)
         if len(assistant.split()) > 3:
             self.trauma_extractor.update(assistant)
         elif self.verbose:
             print(f"  [TRAUMA] skipped assistant (trivial: '{assistant}')")
-        trauma_changed = (self.trauma_extractor.get() != old_trauma)
         trauma_time = time.time() - t0
 
         self.history.append({"role": "user",      "content": user})
         self.history.append({"role": "assistant", "content": assistant})
         self.turn_count += 1
 
-        echidna_time = 0.0
-        if self.use_llm and not trauma_changed:
-            decision = self.echidna._mock_decide(self.history, self.turns_since_checkpoint)
-            if self.verbose:
-                print(f"  [ECHIDNA] mock fallback (trauma unchanged) → {decision.action} ({decision.reason})")
-        else:
-            t0 = time.time()
-            decision = self.echidna.decide(
-                history                = self.history,
-                trauma                 = self.trauma_extractor.get(),
-                checkpoint_summary     = self.checkpoint_stack.summary(),
-                turns_since_checkpoint = self.turns_since_checkpoint,
-                available_checkpoints  = self.checkpoint_stack.list_ids(),
-            )
-            echidna_time = time.time() - t0
+        t0 = time.time()
+        decision = self.echidna.decide(
+            history                = self.history,
+            trauma                 = self.trauma_extractor.get(),
+            checkpoint_summary     = self.checkpoint_stack.summary(),
+            turns_since_checkpoint = self.turns_since_checkpoint,
+            available_checkpoints  = self.checkpoint_stack.list_ids(),
+        )
+        echidna_time = time.time() - t0
 
         if decision.action == "checkpoint" and self.use_llm:
             history_tokens = count_tokens(" ".join(m["content"] for m in self.history))

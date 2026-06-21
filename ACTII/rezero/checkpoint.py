@@ -66,7 +66,9 @@ class CheckpointBuilder:
         full_text = "\n".join(
             f"{m['role'].upper()}: {m['content']}" for m in history
         )
-        compressed = compress(full_text, question=self.goal, ratio=self.ratio, use_llm=self.use_llm, exclude=trauma)
+        history_tokens = count_tokens(full_text)
+        effective_ratio = min(self.ratio, CHECKPOINT_CAP / max(1, history_tokens))
+        compressed = compress(full_text, question=self.goal, ratio=effective_ratio, use_llm=self.use_llm, exclude=trauma)
         return self._enforce_cap(compressed)
 
     def _enforce_cap(self, text: str) -> str:

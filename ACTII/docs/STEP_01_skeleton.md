@@ -1,50 +1,28 @@
-# Step 1 — Project Skeleton
+# Step 1 — Project Skeleton & Mock Stubs
 
-> **Goal:** Create the full folder structure, install deps, write the DeepSeek client and token counter. Everything we build is ours — no external team dependency.
+> **Goal:** Create folder structure, install deps, wire mock stubs for all Act 1 interfaces so every downstream step is unblocked immediately. Zero real API calls in this step.
 
 ---
 
-## Folder structure
+## What to build
 
 ```
 rbd_compress/
-├── engine/
+├── act1/
 │   ├── __init__.py
-│   ├── deepseek.py      ← DeepSeek API client + solver
-│   ├── compressor.py    ← query-aware text compressor
-│   └── tokens.py        ← token counter
+│   ├── compress.py     ← MOCK
+│   ├── solve.py        ← MOCK
+│   └── tokens.py       ← MOCK
 ├── rezero/
-│   ├── __init__.py
-│   ├── trauma.py
-│   ├── checkpoint.py
-│   ├── echidna.py
-│   ├── context_builder.py
-│   └── session.py
+│   └── __init__.py
 ├── baselines/
-│   ├── __init__.py
-│   └── naive.py
+│   └── __init__.py
 ├── experiments/
-│   ├── __init__.py
-│   ├── token_curve.py
-│   ├── hotpotqa_runner.py
-│   ├── microclaim.py
-│   ├── turn15_probe.py
-│   ├── plot_curve.py
-│   └── generate_panel.py
+│   └── __init__.py
 ├── demo/
-│   ├── scripted_convo.jsonl
-│   ├── panel.html
-│   └── panel_live.html
+│   └── scripted_convo.jsonl
 ├── tests/
-│   ├── __init__.py
-│   ├── test_trauma.py
-│   ├── test_checkpoint.py
-│   ├── test_echidna.py
-│   ├── test_session.py
-│   ├── test_budget.py
-│   └── test_naive.py
-├── notebooks/
-├── results/
+│   └── __init__.py
 ├── requirements.txt
 └── .env
 ```
@@ -72,113 +50,74 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 
 ---
 
-## engine/tokens.py
+## act1/compress.py (mock)
+
+```python
+def compress_ours(text: str, question: str, ratio: float) -> str:
+    """
+    MOCK: truncates to ratio fraction of words.
+    Swap for real DeepSeek call in Step 8.
+    """
+    words = text.split()
+    keep = max(1, int(len(words) * ratio))
+    return " ".join(words[:keep])
+```
+
+---
+
+## act1/tokens.py (mock)
 
 ```python
 def count_tokens(text: str) -> int:
     """
-    Approximate token count: word count × 1.3 BPE ratio.
-    DeepSeek tokenizer is not publicly available.
-    1.3 is a conservative upper bound for English text.
+    MOCK: word count proxy.
+    Real version multiplies by 1.3 BPE ratio in Step 8.
     """
-    return int(len(text.split()) * 1.3)
+    return len(text.split())
 ```
 
 ---
 
-## engine/deepseek.py
+## act1/solve.py (mock)
 
 ```python
-import os
-import json
-from openai import OpenAI
-from dotenv import load_dotenv
-load_dotenv()
-
-client = OpenAI(
-    api_key=os.environ["DEEPSEEK_API_KEY"],
-    base_url=os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
-)
-
-def call(
-    system: str,
-    prompt: str,
-    max_tokens: int = 512,
-) -> str:
-    """
-    Core DeepSeek call. Used by all components:
-    Echidna, TraumaExtractor, Compressor, and Solver.
-    """
-    resp = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user",   "content": prompt},
-        ],
-        max_tokens=max_tokens,
-        temperature=0.0,
-    )
-    return resp.choices[0].message.content.strip()
-
-
 def solve(context: str, question: str) -> str:
     """
-    Answer a question given context. Used in evaluation.
-    Returns a concise answer string.
+    MOCK: returns fixed string.
+    Swap for real DeepSeek call in Step 8.
     """
-    system = (
-        "Answer the question using only the provided context. "
-        "Be as concise as possible — one sentence or fewer."
-    )
-    return call(system, f"Context:\n{context}\n\nQuestion: {question}", max_tokens=64)
-```
+    return "MOCK_ANSWER"
 
----
-
-## engine/compressor.py
-
-```python
-from engine.deepseek import call
-from engine.tokens import count_tokens
-
-def compress(text: str, question: str, ratio: float) -> str:
+def _deepseek_call(system: str, prompt: str, max_tokens: int = 512, fast: bool = False) -> str:
     """
-    Query-aware compressor. Keeps roughly `ratio` fraction of tokens.
-    Preserves facts critical to answering `question`.
+    MOCK: stub for internal LLM calls used by Echidna and TraumaExtractor.
+    Swap for real implementation in Step 8.
     """
-    target = max(20, int(count_tokens(text) * ratio))
-    system = (
-        f"You are a precise text compressor. "
-        f"Compress the following text to approximately {target} tokens. "
-        f'The result will be used to answer: "{question}". '
-        f"Preserve all named entities, numbers, dates, and facts critical to the question. "
-        f"Return only the compressed text — no preamble, no explanation."
-    )
-    return call(system, text, max_tokens=target + 20)
+    return '{"action": "pass", "revert_to": null, "reason": "mock", "urgency": "low"}'
 ```
 
 ---
 
 ## demo/scripted_convo.jsonl
 
-Create with one JSON object per line — one turn per line:
+Create this file with one JSON object per line. Each line is one turn:
 
 ```jsonl
 {"goal": "Research Elon Musk companies and their government relationships", "user": "What companies were founded by Elon Musk?", "assistant": "Elon Musk founded Tesla, SpaceX, and Neuralink."}
 {"goal": null, "user": "Which of these focus on space?", "assistant": "SpaceX focuses on space exploration and launch services."}
 {"goal": null, "user": "Who co-founded SpaceX with Musk?", "assistant": "Musk founded SpaceX but brought in Gwynne Shotwell as COO."}
 {"goal": null, "user": "Does SpaceX have government contracts?", "assistant": "Yes, SpaceX has major NASA and DoD contracts."}
-{"goal": null, "user": "What is the latest SpaceX rocket?", "assistant": "Starship is the latest and most powerful SpaceX rocket."}
+{"goal": null, "user": "What is the latest SpaceX rocket?", "assistant": "Starship is SpaceX latest and most powerful rocket."}
 {"goal": null, "user": "Has Starship reached orbit?", "assistant": "Starship completed its first successful orbital flight in 2024."}
 {"goal": null, "user": "What fuel does Starship use?", "assistant": "Starship uses liquid methane and liquid oxygen."}
 {"goal": null, "user": "How does this compare to the Falcon 9?", "assistant": "Falcon 9 uses RP-1 kerosene and liquid oxygen."}
 {"goal": null, "user": "Which is reusable?", "assistant": "Both are reusable. Falcon 9 lands its first stage; Starship aims for full reuse."}
-{"goal": null, "user": "What is Neuralink?", "assistant": "Neuralink is a brain-computer interface company founded by Musk in 2016."}
+{"goal": null, "user": "Going back to Musk — what is Neuralink?", "assistant": "Neuralink is a brain-computer interface company founded by Musk in 2016."}
 {"goal": null, "user": "Has Neuralink done human trials?", "assistant": "Yes, Neuralink implanted its first human patient in January 2024."}
 {"goal": null, "user": "What was the patient name?", "assistant": "The first patient was Noland Arbaugh, a 29-year-old quadriplegic."}
-{"goal": null, "user": "What was the outcome?", "assistant": "Arbaugh could control a computer cursor with his thoughts."}
-{"goal": null, "user": "Did NASA fund any Neuralink work?", "assistant": "No, NASA has not funded Neuralink. It primarily funds SpaceX."}
-{"goal": null, "user": "Which Musk company has the most government money?", "assistant": "SpaceX by far — billions in NASA, Air Force, and DoD contracts."}
+{"goal": null, "user": "What was the outcome?", "assistant": "Arbaugh could control a computer cursor with his thoughts after implantation."}
+{"goal": null, "user": "Did NASA fund any Neuralink work?", "assistant": "No, NASA has not funded Neuralink; it primarily funds SpaceX for launch services."}
+{"goal": null, "user": "So which Musk company has the most government money?", "assistant": "SpaceX by far — billions in NASA, Air Force, and DoD contracts."}
 ```
 
 ---
@@ -188,33 +127,20 @@ Create with one JSON object per line — one turn per line:
 ```bash
 pip install -r requirements.txt --break-system-packages
 
-# verify DeepSeek is wired
-python - <<'EOF'
-from engine.deepseek import solve
-print(solve("The Eiffel Tower is in Paris, France.", "Where is the Eiffel Tower?"))
-EOF
-# expect: Paris / Paris, France
+python -c "from act1.compress import compress_ours; print(compress_ours('hello world foo bar baz', 'q', 0.5))"
+# expect: hello world foo
 
-# verify token counter
-python - <<'EOF'
-from engine.tokens import count_tokens
-print(count_tokens("hello world"))
-EOF
-# expect: 2 or 3 (word count × 1.3, rounded)
+python -c "from act1.tokens import count_tokens; print(count_tokens('hello world'))"
+# expect: 2
 
-# verify compressor
-python - <<'EOF'
-from engine.compressor import compress
-result = compress("Alice founded Tech Corp in 2010. She raised 50 million dollars.", "Who founded Tech Corp?", ratio=0.5)
-print(result)
-EOF
-# expect: shorter text mentioning Alice and Tech Corp
+python -c "from act1.solve import solve; print(solve('ctx', 'q'))"
+# expect: MOCK_ANSWER
 ```
 
 ---
 
 ## Done when
 
-- All three imports work
-- DeepSeek returns a sensible answer on the sanity check
-- `demo/scripted_convo.jsonl` exists with at least 10 lines
+- All three imports work without errors
+- Mock outputs match expected values above
+- `demo/scripted_convo.jsonl` exists with 15 lines
