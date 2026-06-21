@@ -96,7 +96,7 @@ We don't report a single number; we run a **5-bar paired benchmark** so the resu
 | `bear→ours` | run bear first, then our model on its output |
 | `ours→bear` | run our model first, then bear on its output |
 
-All bars are truncated to the **same target token budget** and judged by the **same frozen solver**. Deltas are computed **paired** (per-instance `ours − bear`) with a 1000-iteration bootstrap 95% CI (`src/act1/metrics.py`).
+All bars are truncated to the **same target token budget** and judged by the **same frozen solver**. Deltas are computed **paired** (per-instance `ours − bear`) with a 1000-iteration bootstrap 95% CI (`recompress/act1/metrics.py`).
 
 ### 4.1 The distilled student, full 5-bar, per benchmark
 
@@ -192,7 +192,7 @@ It took **7+ debugging iterations** to get the first clean H100 train. Documente
 | 3 | trainer probe | `dict object has no element 0` | Unsloth probes the func with a **single example**, not a batch |
 | 4 | trainer probe | `formatting_func should return a list` | misleading error masking a brittle path — **abandon `formatting_func` entirely** |
 | ✅ | — | **SUCCESS** | **pre-render the ChatML `text` column locally** (validated against the real Qwen template), ship plain text, train with `dataset_text_field="text"` and no `formatting_func` |
-| 5 | inference | `ModuleNotFoundError: tiktoken` | `src.act1.tokens` imports tiktoken at runtime — add it to the infer image + `.add_local_python_source("src")` |
+| 5 | inference | `ModuleNotFoundError: tiktoken` | `recompress.act1.tokens` imports tiktoken at runtime — add it to the infer image + `.add_local_python_source("recompress")` |
 | 6 | eval (OOM) | 53 GB alloc during eval at the epoch boundary | `prediction_loss_only=True` (skip casting full logits `[bs, seq, vocab=151936]` to fp32) + `expandable_segments:True` |
 | 7 | speed/arch | `packing=True` needs flash-attn (broken here); ~150 cold model loads in eval | revert to plain batching (eff. batch 64); restructure inference to a Modal **class** (`@enter` loads adapter once) + **batched** remote call |
 
@@ -205,7 +205,7 @@ It took **7+ debugging iterations** to get the first clean H100 train. Documente
 We'd rather state clearly what we did **not** prove.
 
 1. **bear has real, structural advantages we don't beat.** bear is **deletion**, so it's verbatim (no hallucination risk — it can only keep your real tokens), **query-agnostic** (compress a document *once* and reuse the result across many different questions; we must recompress per question), and **needs no training**. Our model can mis-read a question and drop the answer's evidence. For a compress-once-serve-many cache, or where verbatim fidelity is required, bear is the right tool.
-2. **Latency is not a win for us.** At the API level the teacher and bear are essentially tied (≈1.08s vs ≈1.05s mean per call — both dominated by a network round-trip; see `eval/latency_api.json`). bear's structural speed edge (deletion is not autoregressive generation, and it amortizes over reuse) is real but is **not** demonstrated as a wall-clock win in our measurements. We claim an **accuracy/token** win, not a speed win.
+2. **Latency is not a win for us.** At the API level the teacher and bear are essentially tied (≈1.08s vs ≈1.05s mean per call — both dominated by a network round-trip; see `results/latency_api.json`). bear's structural speed edge (deletion is not autoregressive generation, and it amortizes over reuse) is real but is **not** demonstrated as a wall-clock win in our measurements. We claim an **accuracy/token** win, not a speed win.
 3. **Two of four benchmarks are not significant** (MuSiQue, SQuAD) — see §4.2. Positive everywhere, proven on two.
 4. **Stacking fails, sometimes significantly** (§4.2) — ReCompress replaces bear in this regime; it does not layer on it.
 5. **We did not beat published SOTA** (LLMLingua / LLMLingua-2 — multi-year Microsoft Research efforts). We beat **bear-1.1, the challenge sponsor's product**, which is the relevant comparison for this track. Our distinction vs LLMLingua is methodological: they **delete** tokens (extractive); we **rewrite** them (abstractive + query-aware).
@@ -220,7 +220,7 @@ The stacking failure (§4.2) points directly at the *original* thesis and the mo
 
 `ours→bear` fails because bear deletes our already-dense output and mangles it. But flip the objective: instead of training a student to *replace* bear, train a small model whose job is to **make bear's *output* better** — a query-aware post-processor that takes bear's deleted token-soup and repairs/re-densifies it for the question. That's a *different* training objective (input = bear output, target = a good compression of it), and it would be **additive and flattering** to bear rather than competitive — it extends bear into the query-aware regime instead of supplanting it. Not built yet; it's the clean next experiment.
 
-Other directions: a ratio sweep + larger n to map the significance frontier; calibrating the budget knob so the student hits a requested ratio; and an **Act 2 multi-turn** application (`prd-multiturn.md`) — a conversational memory (compressed checkpoint + protected facts + per-turn delta) so cumulative token cost stays flat instead of growing O(n²) over a long chat.
+Other directions: a ratio sweep + larger n to map the significance frontier; calibrating the budget knob so the student hits a requested ratio; and an **Act 2 multi-turn** application (`docs/PRD_act2.md`, implemented in `rezero/`) — a conversational memory (compressed checkpoint + protected facts + per-turn delta) so cumulative token cost stays flat instead of growing O(n²) over a long chat.
 
 ---
 
@@ -228,7 +228,7 @@ Other directions: a ratio sweep + larger n to map the significance frontier; cal
 
 ```
 ReCompress/
-├── src/
+├── recompress/                       # ACT 1 — query-aware compression + distillation (run from repo root)
 │   ├── config.py                     # env-driven config (models, seeds, n, bootstrap iters)
 │   ├── act1/                         # single-shot compression + the 5-bar benchmark
 │   │   ├── compress.py               # compress_ours(): the query-aware teacher pass (+ distill prompt)
@@ -238,23 +238,34 @@ ReCompress/
 │   │   ├── data.py / benchmarks.py   # HotpotQA / 2Wiki / MuSiQue / SQuAD loaders (seeded)
 │   │   ├── evaluate.py               # API-teacher 5-bar runner
 │   │   ├── latency.py                # per-strategy latency benchmark
-│   │   └── plot_results.py           # cross-benchmark figure
+│   │   └── plot_results.py / plot_all.py / plot_distribution.py   # figures
 │   └── distill/                      # the main submission path
 │       ├── gen_data.py               # teacher data generation (parallel, resumable JSONL)
 │       ├── train.py                  # Modal H100 app: Unsloth LoRA fine-tune Qwen2.5-1.5B
 │       ├── infer.py                  # Modal class: load adapter once (@enter) + batched compress
 │       └── evaluate_distilled.py     # 5-bar re-eval with the distilled model as "ours"
-├── eval/                             # all result JSONs (the numbers in this README)
-│   ├── 5bar_results.json             # API teacher 5-bar (the +0.395 upper bound)
-│   ├── 5bar_distilled_{hotpotqa,2wiki,musique,squad}.json   # the distilled cross-benchmark results
+├── rezero/                           # ACT 2 — ReZero multi-turn memory (run FROM this dir)
+│   ├── rezero/                       # session, trauma, checkpoint, echidna, context_builder
+│   ├── engine/                       # compressor, deepseek, tokens, compressor_backend (Act1⇄Act2 seam)
+│   ├── baselines/                    # naive (growing-context) baseline + TTC probes
+│   ├── experiments/                  # combined_benchmark, token_trajectory, integration_smoke (modal run)
+│   ├── tests/                        # 34 unit tests (pytest)
+│   ├── demo/                         # panel/token-curve HTML + scripted_convo.jsonl
+│   └── docs/                         # Act 2 STEP_* build notes
+├── results/                          # all eval outputs (the numbers in this README)
+│   ├── 5bar_results.json             # API teacher 5-bar (the +0.395 upper bound)        [LFS]
+│   ├── 5bar_distilled_{hotpotqa,2wiki,musique,squad}.json   # distilled cross-benchmark  [LFS]
+│   ├── combined_benchmark.json / token_trajectory.json      # Act 2 multi-turn results
 │   ├── latency_api.json
-│   └── cross_benchmark.png
-├── experiments/
-│   ├── EXPERIMENT_LOG.md             # the full v1→v2→v3 trajectory (research narrative)
-│   └── v1/ , v3/                     # archived datasets, loss curves, Modal logs
-├── token-company-prd.md             # original PRD (the thesis + prior-art review)
-├── prd-multiturn.md                 # Act 2 (multi-turn memory) PRD
-└── PROGRESS.md                      # build log
+│   └── figures/                      # all .png visuals (cross_benchmark, dots, multiturn …) [LFS]
+├── data/distill/                     # teacher training data (JSONL)                       [LFS]
+├── artifacts/                        # distilled LoRA adapters (adapter, adapter_v3)        [LFS]
+├── experiments/                      # archived v1/v3 runs: datasets, loss curves, Modal logs
+├── logs/                             # raw Modal run logs
+├── docs/                             # PRD_act1.md, PRD_act2.md, PRD_integration.md,
+│                                     #   EXPERIMENT_LOG.md, FINDINGS_deletion_ceiling.md,
+│                                     #   DEVPOST.md, PROGRESS.md
+├── README.md  LICENSE  requirements.txt  .env.example
 ```
 
 ### Reproduce the pipeline
@@ -265,18 +276,25 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # fill in DEEPSEEK / BEAR_API_KEY / Modal creds
 
+# --- ACT 1 (run from repo root) ---
+
 # 1. (optional) the API-teacher 5-bar floor — proves the +0.395 upper bound
-python -m src.act1.evaluate                       # -> eval/5bar_results.json
+python -m recompress.act1.evaluate                # -> results/5bar_results.json
 
 # 2. generate teacher training data (parallel, resumable)
-python -m src.distill.gen_data --n 5000 --out data/distill/train_v3.jsonl
+python -m recompress.distill.gen_data --n 5000 --out data/distill/train_v3.jsonl
 
 # 3. LoRA fine-tune Qwen2.5-1.5B on a Modal H100 (~12-15 min; use --detach for long runs)
-modal run --detach src/distill/train.py --data data/distill/train_v3.jsonl
+modal run --detach recompress/distill/train.py --data data/distill/train_v3.jsonl
 
 # 4. the headline: re-run the 5-bar with the distilled model as "ours", all benchmarks
-modal run src/distill/evaluate_distilled.py --benchmark all
-#   -> eval/5bar_distilled_{hotpotqa,2wiki,musique,squad}.json
+modal run recompress/distill/evaluate_distilled.py --benchmark all
+#   -> results/5bar_distilled_{hotpotqa,2wiki,musique,squad}.json
+
+# --- ACT 2 (ReZero multi-turn) — run FROM the rezero/ directory ---
+cd rezero
+python -m pytest tests/ -q                         # 34 unit tests (use_llm=False, no API key)
+modal run experiments/combined_benchmark.py --n 30 # Act1⇄Act2: -> results/combined_benchmark.json
 ```
 
 ---
