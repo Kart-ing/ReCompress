@@ -89,8 +89,9 @@ codebase). We measured both on the same instances (`results/echidna_ablation_swe
 
 | Turns | LLM-Echidna total tok | LLM F1 | **rule-Echidna total tok** | **rule F1** | tokens saved |
 |---|---|---|---|---|---|
-| 6  | 5,563 | 0.585 | **2,166** | 0.508 | **2.6×** |
-| 10 | 9,338 | 0.558 | **3,499** | 0.555 | **2.7×** |
+| 6  | 5,563  | 0.585 | **2,166** | 0.508 | **2.6×** |
+| 10 | 9,338  | 0.558 | **3,499** | 0.555 | **2.7×** |
+| 15 | 14,163 | 0.622 | **5,202** | 0.657 | **2.7×** |
 
 **The rule matches the LLM's answer quality** (T=10: 0.555 vs 0.558, identical within the n=20
 noise band; the T=6 gap 0.508 vs 0.585 is also within that band — see §4.2 of the paper on n=20
@@ -109,15 +110,18 @@ From `results/echidna_ablation_sweep.json` (figure: `media/crossover.png`):
 
 | Turns | naive (cached) | naive (uncached) | RbD-Compress + rule (total) |
 |---|---|---|---|
-| 6  | 846   | 2,960 | **2,166**  ← already beats uncached naive |
-| 10 | 1,366 | 7,700 | **3,499**  ← gap widening fast |
+| 6  | 846   | 2,960  | **2,166**  ← already beats uncached naive |
+| 10 | 1,366 | 7,700  | **3,499**  ← less than half uncached naive |
+| 15 | 2,048 | 16,533 | **5,202**  ← ~3× cheaper than uncached naive |
 
 **Crossover vs *uncached* naive happens at T≈6 (immediately)** once Echidna is cheap — not the
-~15 we projected with the LLM Echidna. By T=10, RbD-Compress (3,499) is less than **half** the
-uncached naive cost (7,700), and the gap widens because rule-overhead grows ~linearly while
-uncached naive grows super-linearly. **Against a KV/prefix-cached naive deployment (846→1,366,
-slope ~140/turn) we still never win on raw tokens** — caching is the great equalizer, and that
-honest caveat stands.
+~15 we projected with the LLM Echidna. By T=15, RbD-Compress (5,202) is **~3× cheaper** than the
+uncached naive cost (16,533), and the gap keeps widening because rule-overhead grows ~linearly
+while uncached naive grows super-linearly. (Notably, the *LLM*-Echidna version is so costly per
+turn that it is itself overtaken by uncached naive around T≈11 — the LLM trigger was
+counterproductive, not just wasteful.) **Against a KV/prefix-cached naive deployment
+(846→2,048, slope ~140/turn) we still never win on raw tokens** — caching is the great
+equalizer, and that honest caveat stands.
 
 ### Why (the slopes, now with real fits)
 

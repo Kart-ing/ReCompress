@@ -117,8 +117,9 @@ The **context-to-solver** axis: over 12 turns a naive agent's solver context gro
 |---|---|---|---|
 | 6 | 5,563 (F1 0.585) | **2,166 (F1 0.508)** | 2,960 |
 | 10 | 9,338 (F1 0.558) | **3,499 (F1 0.555)** | 7,700 |
+| 15 | 14,163 (F1 0.622) | **5,202 (F1 0.657)** | 16,533 |
 
-So with the cheap trigger, Re:Zero beats an **uncached** growing-history agent on *total* tokens from ~6 turns (gap widening); against a **KV/prefix-cached** agent it never wins on raw tokens — the genuine wins are the **context-window-bound** regime and the **expensive-solver** regime. (`results/echidna_ablation_sweep.json`, figure `results/figures/crossover.png`; full analysis in `docs/MULTITURN_OVERHEAD.md`.)
+So with the cheap trigger, Re:Zero beats an **uncached** growing-history agent on *total* tokens from ~6 turns, and the gap widens to **~3× by 15 turns** (5,202 vs 16,533). The LLM-Echidna version is so costly it's itself overtaken by uncached naive around T≈11 — i.e. the LLM trigger was counterproductive, not just wasteful. Against a **KV/prefix-cached** agent we never win on raw tokens — the genuine wins are the **context-window-bound** and **expensive-solver** regimes. (`results/echidna_ablation_sweep.json`, figure `results/figures/crossover.png`; full analysis in `docs/MULTITURN_OVERHEAD.md`.)
 
 ### A1. The 5-bar methodology
 
