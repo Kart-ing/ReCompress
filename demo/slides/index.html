@@ -68,51 +68,48 @@
   <!-- ============ VIDEO SPINE (matches the 60s script) ============ -->
 
   <!-- 1. PROBLEM (0:00–0:12) -->
+  <!-- SAY: "Every AI call rereads the full conversation history. Cost grows quadratically.
+            And query-agnostic compression keeps the wrong passages." -->
   <section>
-    <!-- script beat: problem (0:00–0:12) -->
     <div class="kicker">The problem</div>
-    <h2>Every AI call rereads the whole history</h2>
-    <div class="two" style="margin-top:22px;">
+    <h2 style="margin-bottom:32px;">Every AI call rereads the<br/>full conversation history</h2>
+    <div class="two" style="margin-top:10px;">
       <div>
-        <p><strong>Cost grows quadratically.</strong> A long conversation resends its entire
-        history every single turn.</p>
-        <p>And <strong>query-agnostic compression keeps the wrong passages</strong> — it can't
-        see which ones actually answer your question.</p>
+        <p style="font-size:1.05em; margin:0 0 22px;">Cost grows <span class="bear">quadratically</span>.</p>
+        <p style="font-size:1.05em; margin:0;">Query-agnostic compression keeps the <span class="bear">wrong passages</span>.</p>
       </div>
       <div class="card">
-        <p class="mono" style="font-size:0.78em; margin:0;">
+        <p class="mono" style="font-size:0.82em; margin:0;">
           turn 1: <span class="muted">[ctx]</span><br/>
           turn 2: <span class="muted">[ctx][ctx]</span><br/>
           turn 3: <span class="muted">[ctx][ctx][ctx]</span><br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;⋮ &nbsp; <span class="bear">O(n²) cost</span><br/><br/>
-          + you keep the <span class="bear">distractors</span>,<br/>&nbsp;&nbsp;not the answer.
+          &nbsp;&nbsp;&nbsp;&nbsp;⋮ &nbsp; <span class="bear">O(n²)</span>
         </p>
       </div>
     </div>
   </section>
 
   <!-- 2. SOLUTION (0:12–0:28) -->
+  <!-- SAY: "We built a model that reads the question first and rewrites only what is relevant.
+            1.5 billion parameters, offline, cents per call. A three-tier memory keeps multi-turn
+            context flat regardless of conversation length." -->
   <section>
-    <!-- script beat: solution (0:12–0:28) -->
     <div class="kicker">The solution</div>
-    <h2>A model that reads the question, then rewrites</h2>
-    <div class="three" style="margin-top:20px;">
+    <h2 style="margin-bottom:28px;">Reads the question first.<br/>Rewrites only what's relevant.</h2>
+    <div class="three" style="margin-top:10px;">
       <div class="card ours">
-        <h3 class="hl">Query-aware rewrite</h3>
-        <p style="margin:0; font-size:0.78em;">Reads the question first, then rewrites only the relevant content.</p>
+        <h3 class="hl">Reads the question</h3>
+        <p style="margin:0; font-size:0.82em;">Rewrites only the relevant content — drops the rest.</p>
       </div>
       <div class="card ours">
-        <h3 class="hl">1.5B, offline</h3>
-        <p style="margin:0; font-size:0.78em;">Qwen2.5-1.5B + LoRA. No API at inference — <span class="good">cents per call</span>.</p>
+        <h3 class="hl">1.5B · offline</h3>
+        <p style="margin:0; font-size:0.82em;">Qwen2.5-1.5B + LoRA. <span class="good">Cents per call</span>, no API.</p>
       </div>
       <div class="card ours">
         <h3 class="hl">Three-tier memory</h3>
-        <p style="margin:0; font-size:0.78em;">Protected facts + checkpoint + delta keep multi-turn context <strong>flat</strong>, any length.</p>
+        <p style="margin:0; font-size:0.82em;">Keeps multi-turn context <strong>flat</strong> — any conversation length.</p>
       </div>
     </div>
-    <p class="center muted" style="margin-top:24px; font-size:0.78em;">
-      The abstractive, query-aware regime that deletion-based compression cedes — packaged as a small model.
-    </p>
   </section>
 
   <!-- 3. TITLE / NAME REVEAL -->
@@ -127,27 +124,30 @@
   </section>
 
   <!-- 4. RESULTS (0:28–0:48) -->
+  <!-- SAY: "56% better than bear-1.1 on HotpotQA at 8.5 times fewer tokens. Generalizes
+            zero-shot to a benchmark we never trained on. Multi-turn context stays at 184 tokens
+            while naive reaches 1,482 by turn 12. Ten dollars total. Paper on Zenodo." -->
   <section data-background-color="#0b0e14" class="center">
-    <!-- script beat: results (0:28–0:48) -->
     <div class="kicker center">The results</div>
     <div class="bignums">
-      <div class="bignum"><div class="n">+56%</div><div class="l">vs bear-1.1 on HotpotQA</div></div>
-      <div class="bignum"><div class="n">8.5×</div><div class="l">fewer tokens (48 vs 409)</div></div>
-      <div class="bignum"><div class="n">~$10</div><div class="l">total compute</div></div>
+      <div class="bignum"><div class="n">+56%</div><div class="l">better than bear-1.1 (HotpotQA)</div></div>
+      <div class="bignum"><div class="n">8.5×</div><div class="l">fewer tokens</div></div>
+      <div class="bignum"><div class="n">$10</div><div class="l">total</div></div>
     </div>
-    <div class="two" style="margin-top:6px; font-size:0.92em;">
-      <p class="center"><span class="good">Generalizes zero-shot</span> to a benchmark we never trained on (2Wiki, +46%).</p>
-      <p class="center">Multi-turn context holds at <span class="hl">184 tokens</span> while naive hits <span class="bear">1,482</span> by turn 12.</p>
+    <div class="two" style="margin-top:10px; font-size:0.98em;">
+      <p class="center"><span class="good">Zero-shot</span> to a benchmark we never trained on.</p>
+      <p class="center">Multi-turn stays at <span class="hl">184</span> tokens — naive reaches <span class="bear">1,482</span> by turn 12.</p>
     </div>
-    <p class="center muted mono" style="margin-top:18px; font-size:0.66em;">Paper on Zenodo · DOI 10.5281/zenodo.20786357</p>
+    <p class="center muted mono" style="margin-top:20px; font-size:0.66em;">Paper on Zenodo · DOI 10.5281/zenodo.20786357</p>
   </section>
 
   <!-- 5. BYE (0:48–0:60) -->
+  <!-- SAY: "github.com/Kart-ing/ReCompress. Thank you." -->
   <section data-background-color="#0b0e14" class="center">
-    <!-- script beat: bye (0:48–1:00) -->
-    <h2 class="center" style="font-size:1.7em; margin-top:20px;">A small open model carries a frontier compressor's<br/><span class="hl">query-aware edge</span> — offline, for ~$10.</h2>
-    <p class="center mono" style="font-size:1.2em; color:var(--ours); margin-top:34px;">github.com/Kart-ing/ReCompress</p>
-    <p class="center muted" style="margin-top:24px; font-size:0.85em;">Thank you.</p>
+    <h1 style="font-size:1.7em; margin-top:30px;">Re<span class="hl">Compress</span></h1>
+    <p class="center mono" style="font-size:1.5em; color:var(--ours); margin-top:36px;">github.com/Kart-ing/ReCompress</p>
+    <p class="center" style="margin-top:34px; font-size:1.1em;">Thank you.</p>
+    <p class="center muted mono" style="margin-top:30px; font-size:0.6em;">Paper: 10.5281/zenodo.20786357 · Demo: demo-eight-olive-97.vercel.app</p>
   </section>
 
   <!-- ============ LIVE-DAY APPENDIX (deeper evidence for Q&A) ============ -->
