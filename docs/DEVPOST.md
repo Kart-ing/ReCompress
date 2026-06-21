@@ -74,13 +74,16 @@ Pipeline: DeepSeek teacher → 5,000 query-aware compression pairs → LoRA fine
 
 ## Accomplishments we're proud of
 
-- A **1.5B model that beats the challenge sponsor's own product** at matched budget, with statistical significance, that **generalizes to a benchmark it never trained on**.
+- A **1.5B model that beats the challenge sponsor's own product** at matched budget, with statistical significance, that **generalizes to a benchmark it never trained on** (2Wiki, +46%).
+- **We stress-tested our own headline before a judge could.** The teacher and solver are both DeepSeek (a circularity a sharp reviewer attacks first), so we **re-scored with an independent solver (Claude Sonnet)**: the gap is **invariant** — Δ vs bear = **+0.288** (independent) vs **+0.285** (in-family), CI excludes zero both ways. The win is not a same-family artifact.
 - A **unified system**: the same distilled compressor wins as a single-shot compressor *and* as a multi-turn memory engine (beating both DeepSeek and bear there).
-- **Research-grade rigor in 24h**: bootstrap CIs on every claim, 5 named experiments with a clear winner, two documented negative results, a conceptual finding (the "deletion ceiling"), a 13-figure visualization suite, and a custom multi-turn benchmark.
+- **Research-grade rigor + intellectual honesty in 24h**: bootstrap CIs on every claim, a cross-solver audit, a mask-the-answer audit (measured *against ourselves*), 5 named experiments with a clear winner, three documented negative results, a conceptual finding (the "deletion ceiling"), a 13-figure visualization suite, and a custom multi-turn benchmark.
 
 ## What we learned
 
 - **Query-aware *rewriting* beats blind *deletion*** at matched budget — most where there are distractors (multi-hop QA). On purely abstractive QA (MS MARCO) it ties bear — an honest boundary we report.
+- **The win survives an independent judge** (Claude Sonnet, +0.288) — it's not teacher↔solver affinity.
+- **Much of the margin is span-selection, not reasoning — and we proved it on ourselves.** Masking the gold answer from the compression drops *our* F1 by 65% (vs bear's 31%). So our edge is largely "query-aware compression keeps the answer-bearing span at a 3.5% budget where bear's deletion at 30% truncates it" — a real, useful property, stated precisely rather than oversold.
 - **You can't fix deletion by stacking it after rewriting** (`model→bear` < `model` everywhere) — the "deletion ceiling."
 - **Downstream-grounded distillation isn't free** — selecting by a frozen judge overfits it (Oracle/Oracle-Lite both lost to imitation-based Hearth).
 - **The same compressor composes** — single-shot quality transfers to keeping conversations flat.

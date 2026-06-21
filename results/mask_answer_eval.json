@@ -1,0 +1,365 @@
+{
+  "n": 50,
+  "unmasked_mean_f1": 0.7374029304029304,
+  "masked_mean_f1": 0.2558095238095238,
+  "drop_from_masking": 0.48159340659340655,
+  "drop_ci": [
+    0.34128205128205125,
+    0.6209606227106227
+  ],
+  "n_correct_unmasked": 39,
+  "n_survived_masking": 13,
+  "n_span_dependent": 24,
+  "per_instance": [
+    {
+      "q": "What is the name of one the ex-security officials that means The Institute?",
+      "gold": "Mossad",
+      "f1_unmasked": 0.0,
+      "f1_masked": 0.0,
+      "masked_pred": "Samuel Simeon Fels"
+    },
+    {
+      "q": "Which constituent college of the University of Oxford endows four professorial fellowships for sciences including chemistry and pure mathematics?",
+      "gold": "Magdalen College",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "The Waynflete Professorships"
+    },
+    {
+      "q": "Liz Rose has co-written songs with which artist including \"White Horse\" and \"You Belong with Me\"?",
+      "gold": "Taylor Swift",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Who owns the hotel where the 13th Anniversary Show took place?",
+      "gold": "Boyd Gaming",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Are Freakonomics and In the Realm of the Hackers both American documentaries?",
+      "gold": "no",
+      "f1_unmasked": 1.0,
+      "f1_masked": 1.0,
+      "masked_pred": "No."
+    },
+    {
+      "q": "Were Goo Goo Dolls and Echosmith formed in the same city?",
+      "gold": "no",
+      "f1_unmasked": 1.0,
+      "f1_masked": 1.0,
+      "masked_pred": "No"
+    },
+    {
+      "q": "When was the American lawyer, lobbyist and political consultant who was a senior member of the presidential campaign of Donald Trump born?",
+      "gold": "April 1, 1949",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "What profession does H. L. Mencken and Albert Camus have in common?",
+      "gold": "journalist",
+      "f1_unmasked": 0.0,
+      "f1_masked": 0.0,
+      "masked_pred": "authors"
+    },
+    {
+      "q": "Were Thomas H. Ince and Joseph McGrath of the same nationality?",
+      "gold": "no",
+      "f1_unmasked": 1.0,
+      "f1_masked": 1.0,
+      "masked_pred": "No"
+    },
+    {
+      "q": "Conrad Anker located the body of a mountaineer who took part it the first three British expeditions to which mountain?",
+      "gold": "Mount Everest",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.6666666666666666,
+      "masked_pred": "Everest"
+    },
+    {
+      "q": "What year did the series on CBS, starring the actor who known for his role in \"Rebel Without a Cause,\" air?",
+      "gold": "1952",
+      "f1_unmasked": 0.0,
+      "f1_masked": 0.0,
+      "masked_pred": "1955"
+    },
+    {
+      "q": "Radha Jayalakshmi and the Priya sisters were both duo's in what music style? ",
+      "gold": "Carnatic music",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.28571428571428575,
+      "masked_pred": "classical South Indian music style"
+    },
+    {
+      "q": "Which close friend of an American former basketball player was signed for to play for the Timberwolves?",
+      "gold": "signing free agent Chauncey Billups",
+      "f1_unmasked": 0.0,
+      "f1_masked": 0.0,
+      "masked_pred": "Jerry Lucas"
+    },
+    {
+      "q": "The Simpsons episode that aired on February 19, 2012 entitled \"At Long Last Leave\" represented what milestone for the show? ",
+      "gold": "show's 500th episode",
+      "f1_unmasked": 0.8,
+      "f1_masked": 0.8,
+      "masked_pred": "500th episode"
+    },
+    {
+      "q": "What show other than Hello Ross did Chelsea Handler appear on in January of 2016",
+      "gold": "Chelsea Does",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Which city was the man who is known for a science humor story based on the tongue-in-cheek combination of two adages born in?",
+      "gold": "New York City, New York",
+      "f1_unmasked": 0.0,
+      "f1_masked": 0.0,
+      "masked_pred": "Not provided."
+    },
+    {
+      "q": "The La Senza brand is currently owned by a fashion retailer based in what Ohio city?",
+      "gold": "Columbus",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Which British first-generation jet-powered medium bomber was used in the South West Pacific theatre of World War II?",
+      "gold": "English Electric Canberra",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "The [REDACTED]"
+    },
+    {
+      "q": "To what sport does the Atomweight class belong?",
+      "gold": "mixed martial arts",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "combat sports"
+    },
+    {
+      "q": "What country do both Adnan Akmal and Kamran Akmal represent in cricket?",
+      "gold": "Pakistani",
+      "f1_unmasked": 0.0,
+      "f1_masked": 0.0,
+      "masked_pred": "Pakistan"
+    },
+    {
+      "q": "What is the name of the oldest child that attended the Trump campaign-Russian meeting?",
+      "gold": "Donald Trump Jr.",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Beena Sarwar is the editor of a peace initiative sponsored by a newpaper based in what city?",
+      "gold": "Karachi, Pakistan",
+      "f1_unmasked": 0.6666666666666666,
+      "f1_masked": 0.6666666666666666,
+      "masked_pred": "Karachi"
+    },
+    {
+      "q": "when was the album that includes the song by Dustin Lynch released to country radio on February 17, 2017?",
+      "gold": "September 8, 2017",
+      "f1_unmasked": 0.0,
+      "f1_masked": 0.0,
+      "masked_pred": "Not in context."
+    },
+    {
+      "q": "Which battle occurred first, the Battle of Manila or the Battle of Guam?",
+      "gold": "Battle of Guam",
+      "f1_unmasked": 1.0,
+      "f1_masked": 1.0,
+      "masked_pred": "Battle of Guam"
+    },
+    {
+      "q": "Which band formed earlier, Edward Sharpe and the Magnetic Zeros or Louis XIV?",
+      "gold": "Louis XIV",
+      "f1_unmasked": 1.0,
+      "f1_masked": 1.0,
+      "masked_pred": "Louis XIV"
+    },
+    {
+      "q": "What Division was the college footbal team that fired their head coach on November 24, 2006?",
+      "gold": "NCAA Division I FBS football",
+      "f1_unmasked": 0.7499999999999999,
+      "f1_masked": 0.7499999999999999,
+      "masked_pred": "Division I FBS"
+    },
+    {
+      "q": "This event which was part of the 1954 AAA National Championship Trail was held at a racing circuit located at the corner of what?",
+      "gold": "16th Street and Georgetown Road",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Woman's Era and Naj are what kind of magazines?",
+      "gold": "fortnightly women interest magazine",
+      "f1_unmasked": 0.6153846153846153,
+      "f1_masked": 0.25,
+      "masked_pred": "lifestyle and women's magazine"
+    },
+    {
+      "q": " What is the latest album of Tim Hecker, the Canadian electronic music maker?",
+      "gold": "Love Streams",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Peter Dhao created a websiteto reflect worldwide views. What was the slogan of the site he created ?",
+      "gold": "media for the 65.8 million",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Jin Jing is a Chinese female Paralympic fencer who called for a boycott of what retailer whose name means crossroads and public square in French?",
+      "gold": "Carrefour",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "This man who was born on April 25th, 1947, was a member of this lower house of the Hawaii State Legislature.",
+      "gold": "Robert \"Bobby\" Bunda",
+      "f1_unmasked": 0.8,
+      "f1_masked": 0.8,
+      "masked_pred": "Robert Bunda"
+    },
+    {
+      "q": "Blue Dwarf is what type of online text-based role-playing game?",
+      "gold": "play-by-post role-playing game",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "MUSH"
+    },
+    {
+      "q": "Anthony Avent played basketball fo a High School that is located in a city approcimately 8 mi west of where?",
+      "gold": "lower Manhattan",
+      "f1_unmasked": 0.0,
+      "f1_masked": 0.0,
+      "masked_pred": "central London"
+    },
+    {
+      "q": "Immanuel Lutheran School is affiliated with the denomination that has how many members?",
+      "gold": "2.1 million",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Erica Packer was the second wife of what Australian businessman?",
+      "gold": "James Packer",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Where was the movement that August Brancart published literature from centerd?",
+      "gold": "Western Europe",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": " Jason Regler, stated that he had the idea for the flashing wristbands during a song built around which instrument ?",
+      "gold": "an organ",
+      "f1_unmasked": 1.0,
+      "f1_masked": 1.0,
+      "masked_pred": "organ"
+    },
+    {
+      "q": "In what city did the \"Prince of tenors\" star in a film based on an opera by Giacomo Puccini?",
+      "gold": "Rome",
+      "f1_unmasked": 0.0,
+      "f1_masked": 0.0,
+      "masked_pred": "Italian-French film"
+    },
+    {
+      "q": "Which musical fantasy film is older, Bedknobs and Broomsticks or The Muppet Christmas Carol?",
+      "gold": "Bedknobs and Broomsticks",
+      "f1_unmasked": 1.0,
+      "f1_masked": 1.0,
+      "masked_pred": "Bedknobs and Broomsticks"
+    },
+    {
+      "q": "D1NZ is a series based on what oversteering technique?",
+      "gold": "Drifting",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "What was the name of the fanzine that interviewed the Sex Pistols bassist when he was in the band \"The Flowers of Romance?\"",
+      "gold": "SKUM",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Which star in the movie Hush was born April 20, 1949?",
+      "gold": "Jessica Lange",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "What season was the character introduced that becomes the main antagonist in the  following season, from the animated television series created by Bryan Konietzko and Michael Dante DiMartino as a sequel to \"\", which aired from 2005 to 2008? ",
+      "gold": "third",
+      "f1_unmasked": 0.6666666666666666,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "How are elephants connected to Gajabrishta?",
+      "gold": "Sanskrit",
+      "f1_unmasked": 0.0,
+      "f1_masked": 0.0,
+      "masked_pred": "Gajabrishta refers to the back portion of a sitting elephant."
+    },
+    {
+      "q": "What is the name of the daughter of the Irish entertainer in the girl band Maxi, Dick and Twink?",
+      "gold": "Chlo\u00eb Alexandra Adele Emily Agnew",
+      "f1_unmasked": 0.5714285714285715,
+      "f1_masked": 0.5714285714285715,
+      "masked_pred": "Chlo\u00eb Agnew"
+    },
+    {
+      "q": "Which of the city at the south of Shelly Beach, New South Wales is a local government area in the Hunter region of New South Wales, Australia?",
+      "gold": "City of Newcastle",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "Central Coast Council"
+    },
+    {
+      "q": "What occupation was shared by David Yates and Pietro Germi?",
+      "gold": "director",
+      "f1_unmasked": 0.0,
+      "f1_masked": 1.0,
+      "masked_pred": "director"
+    },
+    {
+      "q": "Boggle is a word game originally distributed by a toy and game manufacturer that published more than how many games?",
+      "gold": "1,800",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "[REDACTED]"
+    },
+    {
+      "q": "Who died first, George Archainbaud or Ralph Murphy?",
+      "gold": "George Archainbaud",
+      "f1_unmasked": 1.0,
+      "f1_masked": 0.0,
+      "masked_pred": "Ralph Murphy"
+    }
+  ]
+}

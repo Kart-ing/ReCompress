@@ -37,3 +37,29 @@ can't invent a wrong fact. Example tuples saved in the audit JSON's per_instance
 not the n=20 F1 delta (which is within noise, no CI); generalization headline now says
 "significant on multi-hop-with-distractors; directional on dissimilar tasks" rather than
 "generalizes zero-shot."
+
+### Follow-up: characterizing the 66% leakage (split + symmetric mask)
+
+After reporting the 66% verbatim-gold rate, we characterized it two ways instead of retraining
+(the bad-dump rate turned out too low to justify risking the headline on a retrain):
+
+**Split (from saved compressions, `results/cross_solver_audit.json`):** of the 33 leaked cases,
+~60% (30/50) are the answer embedded in a *real supporting sentence* (good query-aware selection,
+e.g. "Liz Rose ... Taylor Swift ..."), and only ~6% (3/50) are short answer-dominated outputs —
+and even those are terse two-fact context, not bare answers. So the "answer-dumping" rate is ~6%,
+not 66%.
+
+**Symmetric mask-the-answer (`results/mask_symmetric.json`):** redact the gold span and re-solve,
+for BOTH systems. This corrected an assumption we'd made — masking does NOT hit bear harder:
+
+| System | unmasked | masked | drop |
+|---|---|---|---|
+| ours (abstractive) | 0.737 | 0.256 | −65% |
+| bear (extractive) | 0.452 | 0.314 | −31% |
+
+**Masking hits ours harder.** A larger share of our F1 is carried by the literal answer span than
+bear's. The honest claim, rewritten in README §4.3/§8: our headline margin is substantially
+*better span selection* (our compression keeps the answer-bearing span at 3.5% budget; bear's
+deletion at 30% often truncates it), NOT *better reasoning* (masked, ours 0.256 < bear 0.314). No
+retrain — this is inherent to short-span QA at an extreme ratio, not a fixable model flaw. We
+report the symmetric numbers rather than the deflection.

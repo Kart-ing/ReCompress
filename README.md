@@ -158,7 +158,17 @@ A sharp reviewer's first attack: **the teacher (DeepSeek) and the solver (DeepSe
 
 **The gap survives a fully independent judge — essentially unchanged (+0.288 vs +0.285), CI still excludes zero.** Absolute scores drop (Sonnet grades harder: ours 0.59, bear 0.30), but the *margin* — the actual claim — is invariant to who grades. The win is not a teacher↔solver artifact. *(We did not have time to cross-solver every benchmark; this is HotpotQA only.)*
 
-**Answer-leakage (reported, not hidden).** At a ~3.5% ratio on short-answer QA, how often does the compressor just *write the answer down*? We measured it: **the gold answer appears verbatim in 33/50 (66%) of ours' compressions.** That is material, and we state it plainly. Two things keep it from undercutting the result: (a) inspection shows most "leaks" are the compressor correctly keeping the *one supporting sentence* (e.g. "...endowed by **Magdalen College**"), which is good query-aware selection, not cheating; (b) if ours were merely echoing answers, it would not still beat bear by +0.29 **under an independent solver** — verbatim spans help any solver equally, and bear preserves verbatim source tokens too. Still, QA-F1 at this ratio partly rewards near-extraction; treat the headline as "query-aware selection + rewriting," with the caveat that on short-span QA selection alone surfaces the answer often.
+**Answer-leakage (measured both ways, including against ourselves).** At a ~3.5% ratio on short-answer QA, how much of the F1 is just the compressor *surfacing the answer span*? We ran two tests and report the uncomfortable numbers:
+
+1. **Verbatim-gold rate:** the gold answer appears verbatim in **33/50 (66%)** of ours' compressions. Splitting those by inspection: ~**60%** are the answer *embedded in a real supporting sentence* (e.g. "Liz Rose has co-written songs with **Taylor Swift**...") — correct query-aware selection — and only ~**6% (3/50)** are short, answer-dominated outputs.
+2. **Mask-the-answer (the rigorous test):** redact the gold span from each compression and re-solve. This is where it gets honest — and where our earlier hand-wave ("masking hits bear too") turned out **wrong**, so we measured it symmetrically:
+
+| System | unmasked F1 | masked F1 | drop |
+|---|---|---|---|
+| **ours** (abstractive) | 0.737 | 0.256 | **−65%** |
+| **bear** (extractive) | 0.452 | 0.314 | −31% |
+
+**Masking hits *ours* harder (−65%) than bear (−31%).** So a larger share of our headline F1 is carried by the literal answer span than bear's is — we will not pretend otherwise. The honest reading: **much of our margin comes from our query-aware compression reliably keeping the answer-bearing span at a 3.5% budget, where bear's blind deletion at a 30% budget often truncates it away.** That is a real, useful property — *selecting the right span*, not *reasoning better* — and the claim should be read that way. (Even masked, ours 0.256 trails bear 0.314 on residual reasoning-from-context — a fair point for bear.) `results/mask_symmetric.json`, `results/cross_solver_audit.json`.
 
 **Faithfulness (the abstractive risk, with receipts).** Rewriting can hallucinate or drop a fact — we name this as the failure mode, so we measured it. **9/50 (18%) are wrong under *both* judges.** A concrete hallucination: for a question whose gold is "1952", ours compressed to *"Rebel Without a Cause (1955)"* — wrong year, confidently stated. Another dropped the relevant passage entirely (kept "Fels Institute" for a question about Mossad). Example compressions (leaked, clean, and failed) are in `results/cross_solver_audit.json` `per_instance`. This is the real cost of abstraction; bear, being extractive, cannot invent a wrong year (its failure mode is keeping the wrong *true* tokens instead).
 
@@ -255,7 +265,7 @@ We'd rather state clearly what we did **not** prove.
 5. **We did not beat published SOTA** (LLMLingua / LLMLingua-2 — multi-year Microsoft Research efforts). We beat **bear-1.1, the challenge sponsor's product**, which is the relevant comparison for this track. Our distinction vs LLMLingua is methodological: they **delete** tokens (extractive); we **rewrite** them (abstractive + query-aware).
 6. **n=50 per benchmark, ratio=0.3 only.** A larger n and a ratio sweep would tighten the CIs and map where the win holds; out of scope for 24h.
 7. **The student over-compresses** (~3.8% vs the ~30% target). It wins anyway, but the budget knob isn't well-calibrated yet.
-8. **Answer-leakage is high on short-span QA: 66% (33/50) of HotpotQA compressions contain the gold answer verbatim** (§4.3). On entity-answer multi-hop QA, query-aware selection often surfaces the exact answer span, so QA-F1 partly rewards near-extraction. The cross-solver-invariant +0.29 gap shows the win isn't *only* leakage, but we report the rate rather than let it be inferred.
+8. **Much of the F1 is carried by the answer span, more for us than for bear** (§4.3). 66% of ours' compressions contain the gold verbatim; masking the gold span drops ours' F1 by 65% (0.737→0.256) vs bear's 31% (0.452→0.314). So the headline margin is substantially "our query-aware compression keeps the answer-bearing span at 3.5% budget where bear's deletion at 30% loses it" — *better span selection*, not *better reasoning*. We measured this both ways and report it rather than letting it be inferred.
 
 ---
 

@@ -1,0 +1,18 @@
+{
+  "n": 50,
+  "ratio": 0.3,
+  "ours": {
+    "system": "ours (abstractive)",
+    "unmasked_f1": 0.7374029304029304,
+    "masked_f1": 0.2558095238095238,
+    "drop": 0.48159340659340655,
+    "drop_pct_of_unmasked": 0.6530939690329888
+  },
+  "bear": {
+    "system": "bear (extractive)",
+    "unmasked_f1": 0.4521428571428572,
+    "masked_f1": 0.31361904761904763,
+    "drop": 0.13852380952380955,
+    "drop_pct_of_unmasked": 0.3063717746182201
+  }
+}
