@@ -1,62 +1,30 @@
 # ReCompress
 
-**Context compression that *rewrites* instead of *deletes* — distilled into a 1.5B model, then extended to keep multi-turn conversations flat.**
+**A query-aware *rewriting* layer that extends [The Token Company](https://thetokencompany.com)'s compression into the regime deletion can't reach — distilled into a 1.5B model, then carried into multi-turn conversations.**
 
-ReCompress is one research project in **two acts**, both attacking the same problem — *sending fewer tokens to an LLM without losing the answer* — from two angles:
+The Token Company's **bear-1.1** is an excellent foundation: it compresses prompts by deleting low-value tokens — fast, verbatim-faithful, query-agnostic, and reusable across many questions. By design, it doesn't paraphrase or generate ("nothing is paraphrased or generated"). **ReCompress takes up exactly where that design leaves off:** a small, question-conditioned model that *rewrites* — dropping passages irrelevant to *this* question and densifying the rest — then we **distill that behavior into Qwen2.5-1.5B + LoRA** so it runs offline and cheap, in the same product category as bear. It is **not a competitor to bear; it's the abstractive, query-aware regime bear explicitly cedes**, packaged as a small model that complements a deletion-based compressor.
+
+ReCompress is one research project in **two acts**:
 
 | | **Act 1 — Single-shot compression** | **Act 2 — Re:Zero multi-turn memory** |
 |---|---|---|
-| Question | Can a small model compress *one* prompt better than blind deletion? | Can it keep a *long conversation* from growing O(n²)? |
+| Question | Can a small model recover the *query-aware* gains deletion leaves on the table? | Can it keep a *long conversation* from growing O(n²)? |
 | Method | Query-aware **rewrite** (drop distractors + densify), distilled into **Qwen2.5-1.5B + LoRA** | A flat ~300-token memory (protected facts + compressed checkpoint + recent delta), whose checkpoints are compressed **by the Act 1 model** |
-| Headline | Beats [The Token Company](https://thetokencompany.com)'s **bear-1.1** by **+0.252 F1 on HotpotQA (+56%, CI excludes 0)**, generalizes zero-shot to 2Wiki (+46%) | Context stays **flat (~184 tok) while a naive agent grows to 1482 tok over 12 turns (8.1× less)** — at *higher* answer quality, with our distilled model as the engine |
+| Result | A 1.5B that compresses HotpotQA context to **~3.5% of tokens** and still answers correctly — recovering the distractor-dropping that blind deletion can't do | Context stays **flat (~184 tok) while a naive agent grows to 1,482 over 12 turns (8.1× less)**, with our distilled model as the engine |
 
-**The two acts are one system.** Act 1 builds a query-aware compressor and distills it into a small offline model. Act 2 makes that model the memory engine of a multi-turn agent — and the distilled compressor beats *both* the DeepSeek API and bear as the Act 2 backend. The thesis across both: **query-aware rewriting beats deletion, and a 1.5B can carry it — for single prompts and for whole conversations.**
+**The two acts are one system:** Act 1 distills a query-aware compressor into a small offline model; Act 2 makes that model the memory engine of a multi-turn agent. The thesis: **query-aware rewriting recovers the gains deletion can't — and a 1.5B can carry it, for single prompts and whole conversations.**
 
-*Built in 24h for the **Token Company Compression Challenge**, UC Berkeley AI Hackathon 2026. This README is also the research writeup — it preserves the full failure→success trajectory across both acts, not just the wins.*
+> **Where this complements The Token Company.** bear wins on the axes it was built for — speed (non-autoregressive deletion), verbatim fidelity (no hallucination), and compress-once-serve-many reuse. ReCompress adds the *one* thing deletion structurally can't (reading the question and rewriting), and shows a 1.5B can deliver it offline. Together they cover both regimes: deletion for fast/reusable/verbatim, rewriting for query-specific distractor-heavy context. **The rigorous head-to-head benchmarks, confidence intervals, cross-solver audits, and honest negative results live in the [Appendix: Methodology & Benchmarks](#appendix-methodology--benchmarks) below** — this project's core is depth of research, so the evidence is all there for anyone who wants it.
 
----
-
-## 1. Act 1 — Headline results (single-shot compression)
-
-Distilled **Qwen2.5-1.5B + LoRA** ("ours") vs **bear-1.1** ("bear"), under the **same token *cap*** (ratio = 0.3), 50 seeded instances per benchmark, frozen DeepSeek solver, QA-F1, paired bootstrap 95% CI on the per-instance delta vs bear. **Crucially, ours wins while spending far *fewer* tokens than bear** — see the budget note below; this is a "beats bear at ~8× fewer tokens" result, not a same-spend tie.
-
-| Benchmark | ours (F1) | bear (F1) | Δ vs bear | 95% CI | rel. | verdict |
-|---|---:|---:|---:|:--:|---:|:--:|
-| **HotpotQA** (in-domain) | **0.704** | 0.452 | **+0.252** | (+0.103, +0.396) | **+56%** | ✅ **PASS** |
-| **2Wiki** (near-in-dist*) | **0.570** | 0.391 | **+0.180** | (+0.030, +0.340) | **+46%** | ✅ **PASS** |
-| MuSiQue (harder OOD) | 0.297 | 0.186 | +0.111 | (−0.027, +0.240) | +60% | ◐ n.s. |
-| SQuAD v2 (single-hop OOD) | 0.593 | 0.471 | +0.123 | (−0.026, +0.269) | +26% | ◐ n.s. |
-
-- **PASS** = the 95% CI on the paired delta excludes zero. **Significant on 2 of 4 benchmarks.**
-- **\*Honest generalization read:** 2Wiki is multi-hop Wikipedia QA built much like HotpotQA, so its "transfer" is *near*-in-distribution. The genuinely dissimilar sets — **MuSiQue (harder multi-hop) and SQuAD (single-hop) are both n.s.** So the accurate claim is: *significant on multi-hop-with-distractors; directional-but-unproven on dissimilar tasks at n=50.* Not "generalizes zero-shot," full stop.
-- The student was trained only on HotpotQA-derived teacher data.
-
-> **⚠️ Known confound we name up front (a sharp reviewer will go here first): the teacher and the solver are both DeepSeek.** The teacher generates the compressions the student learns to mimic, and a frozen DeepSeek then grades the answers — so "ours" may enjoy some *solver-affinity inflation* that bear (never tuned to any solver) does not. "We hold the solver fixed" makes it *controlled*, not *unbiased*. The clean test is a non-DeepSeek solver; see [§4.3 Cross-solver check](#43-cross-solver-check-the-circularity-test) for what we measured / what's outstanding.
-
-**Upper bound.** The DeepSeek API teacher beats bear by **+0.395 F1** on HotpotQA (ours=0.847 vs bear=0.452, CI (+0.259, +0.538)), nearly matching the full-context ceiling (none=0.877) at a fraction of the tokens. The 1.5B student recovers ~**64%** of that frontier margin (0.252/0.395) running offline.
-
-> On HotpotQA the budgets are: full context ≈ 1,364 tok → bear keeps ≈ 409 tok (30%) → **ours rewrites down to ≈ 48 tok (3.5%)** and is still **more accurate** than bear at 8× the tokens. Query-aware rewriting doesn't just compress harder; it compresses *better*, because it throws away the distractor passages bear faithfully preserves.
+*Built in 24h for the **Token Company Compression Challenge**, UC Berkeley AI Hackathon 2026. This README doubles as the research writeup — it preserves the full failure→success trajectory, not just the wins.*
 
 ---
 
-## 1b. Act 2 — Re:Zero multi-turn memory (the compressor, applied to conversations)
+## What we built
 
-Single-shot compression shrinks *one* prompt. But a long **conversation** has the opposite problem: context grows every turn, so cost scales O(n²). **Re:Zero** (Act 2, in `rezero/`) is a multi-turn memory that holds a **fixed ~300-token budget** — protected facts ("trauma") + a compressed checkpoint of older turns + the recent raw delta — so context stays flat no matter how long the chat runs. The catch: *something* has to compress the checkpoints. **We use the Act 1 distilled model.**
-
-Combined benchmark (multi-turn HotpotQA, 6 turns, n=20; final-answer QA-F1 + context size at the last turn):
-
-| Strategy | final F1 | context tokens |
-|---|---:|---:|
-| Naive (full growing history) | 0.485 | 846 |
-| Re:Zero + DeepSeek API | 0.455 | 198 |
-| **Re:Zero + distilled-v3 (ours)** | **0.501** | **174** |
-| Re:Zero + bear | 0.472 | 257 |
-
-**Re:Zero powered by our distilled compressor wins on *both* axes** — the highest answer quality (0.501, beating even the full-history naive agent) at the *fewest* tokens (174). And per-turn, the gap compounds:
-
-> Over 12 turns, a **naive agent grows to 1,482 context tokens** while **Re:Zero stays flat at ~184 — 8.1× less, and diverging.** (`results/token_trajectory.json`, figure `results/figures/token_trajectory_line.png`.)
-
-This is the unifying result: the same 1.5B query-aware compressor that beats bear on single prompts (Act 1) also beats DeepSeek *and* bear as a conversational-memory engine (Act 2) — offline, at a fraction of the tokens.
+- **A distilled 1.5B query-aware compressor** (`recompress/`) — DeepSeek teacher → Qwen2.5-1.5B + LoRA on a Modal H100, ~$10 total. Runs offline.
+- **Re:Zero, a flat-context multi-turn memory** (`rezero/`) — trauma (protected facts) + compressed checkpoint + recent delta, capped at ~300 tokens, with the Act 1 model as the checkpoint compressor. Keeps a 12-turn conversation flat at ~184 tokens vs a naive agent's 1,482.
+- **A research-grade evaluation harness** — a 5-bar paired benchmark at matched budget with bootstrap 95% CIs across four QA datasets, a cross-solver audit (independent judge), a mask-the-answer audit, and a documented v1→v3 distillation trajectory including the failures. *(All numbers in the Appendix.)*
 
 ---
 
@@ -113,7 +81,37 @@ Holding the solver fixed is what makes the comparison fair: every bar is judged 
 
 ---
 
-## 4. Results in depth — the 5-bar methodology
+## Appendix: Methodology & Benchmarks
+
+*This is the rigorous evidence behind the collaborative summary above — full head-to-head tables, confidence intervals, the cross-solver audit, and the honest negative results. ReCompress is a research project first; nothing here is hidden. We measure against **bear-1.1** because it is the relevant deletion baseline (and the challenge sponsor's product), not to diminish it — the comparison is what isolates the value of query-aware rewriting.*
+
+### A0. Act 1 — the headline, in one table
+
+Distilled **Qwen2.5-1.5B + LoRA** ("ours") vs **bear-1.1** ("bear"), same token *cap* (ratio = 0.3), 50 seeded instances/benchmark, frozen DeepSeek solver, QA-F1, paired bootstrap 95% CI on the per-instance delta. Ours wins while spending far *fewer* tokens than bear (budget note below).
+
+| Benchmark | ours (F1) | bear (F1) | Δ vs bear | 95% CI | rel. | verdict |
+|---|---:|---:|---:|:--:|---:|:--:|
+| **HotpotQA** (in-domain) | **0.704** | 0.452 | **+0.252** | (+0.103, +0.396) | **+56%** | ✅ **PASS** |
+| **2Wiki** (near-in-dist) | **0.570** | 0.391 | **+0.180** | (+0.030, +0.340) | **+46%** | ✅ **PASS** |
+| MuSiQue (harder OOD) | 0.297 | 0.186 | +0.111 | (−0.027, +0.240) | +60% | ◐ n.s. |
+| SQuAD v2 (single-hop OOD) | 0.593 | 0.471 | +0.123 | (−0.026, +0.269) | +26% | ◐ n.s. |
+
+> **Budget:** on HotpotQA, full context ≈ 1,364 tok → bear keeps ≈ 409 tok (30%) → **ours rewrites to ≈ 48 tok (3.5%)** and is still more accurate. Query-aware rewriting throws away the distractor passages a deletion pass faithfully preserves. **Upper bound:** the DeepSeek API teacher beats bear by +0.395 (ours=0.847, ceiling none=0.877); the 1.5B student recovers ~64% of that frontier margin offline.
+
+### A0b. Act 2 — Re:Zero multi-turn (the compressor on conversations)
+
+A long conversation grows O(n²); **Re:Zero** (`rezero/`) holds a fixed ~300-token budget (protected facts + a compressed checkpoint + recent delta), with the Act 1 model compressing the checkpoints. Multi-turn HotpotQA, 6 turns, n=20:
+
+| Strategy | final F1 | context tokens |
+|---|---:|---:|
+| Naive (full growing history) | 0.485 | 846 |
+| Re:Zero + DeepSeek API | 0.455 | 198 |
+| **Re:Zero + distilled-v3 (ours)** | **0.501** | **174** |
+| Re:Zero + bear | 0.472 | 257 |
+
+The headline Act-2 result is the **token** axis: over 12 turns a naive agent grows to **1,482 tokens** while Re:Zero stays flat at **~184 (8.1×)** — at answer quality that holds flat, not degraded (the n=20 F1 spread above is within noise, no CI). `results/token_trajectory.json`.
+
+### A1. The 5-bar methodology
 
 We don't report a single number; we run a **5-bar paired benchmark** so the result is interpretable and the stacking question is answered explicitly.
 
@@ -127,7 +125,7 @@ We don't report a single number; we run a **5-bar paired benchmark** so the resu
 
 All bars are truncated to the **same target token budget** and judged by the **same frozen solver**. Deltas are computed **paired** (per-instance `ours − bear`) with a 1000-iteration bootstrap 95% CI (`recompress/act1/metrics.py`).
 
-### 4.1 The distilled student, full 5-bar, per benchmark
+### A2. The distilled student, full 5-bar, per benchmark
 
 | Bar | HotpotQA | 2Wiki | MuSiQue | SQuAD v2 |
 |---|---:|---:|---:|---:|
@@ -137,7 +135,7 @@ All bars are truncated to the **same target token budget** and judged by the **s
 | `bear→ours` (stack) | 0.323 | 0.371 | 0.060 | 0.282 |
 | `ours→bear` (stack) | 0.464 | 0.407 | 0.213 | 0.295 |
 
-### 4.2 What's significant vs directional — stated honestly
+### A3. What's significant vs directional — stated honestly
 
 - **The headline holds where it's hardest.** On the two genuinely multi-hop, distractor-heavy benchmarks (HotpotQA, 2Wiki), ours beats bear with the CI excluding zero. These are the regime the whole thesis predicts deletion fails in.
 - **MuSiQue and SQuAD are directional, not proven.** Ours is ahead on both (+60% and +26% relative) but the CI includes zero at n=50. We **do not** claim a win there. MuSiQue is brutal for *everything* (the full-context ceiling is only 0.520; even DeepSeek with the whole document barely clears 50% F1), so a small-model compressor having a noisy edge there is unsurprising. SQuAD is single-hop — there are few distractors to drop, so query-awareness has less to exploit.
@@ -147,7 +145,7 @@ All bars are truncated to the **same target token budget** and judged by the **s
   - **Why:** our model's output is already a dense ~3.5%-ratio rewrite. Running bear's character-for-character deletion *on top of that* truncates a paragraph that has no slack left — it mangles a finished product. And running bear *first* hands our model shredded token-soup to rewrite. The two operations have incompatible contracts; composing them destroys evidence rather than compounding savings.
   - **Takeaway:** ReCompress is a *replacement* for bear in the query-aware regime, not a *layer* on top of it. (See §8 for the future-work idea this motivates.)
 
-### 4.3 Cross-solver check (the circularity test) + answer-leakage + faithfulness
+### A4. Cross-solver check (the circularity test) + answer-leakage + faithfulness
 
 A sharp reviewer's first attack: **the teacher (DeepSeek) and the solver (DeepSeek) are the same family**, so "ours" may enjoy solver-affinity bear never had. "We hold the solver fixed" makes the comparison *controlled*, not *unbiased*. So we re-ran the HotpotQA head-to-head with a solver independent of **both** the teacher and the student — **Claude Sonnet** (n=50, ratio 0.3, same compressions, `results/cross_solver_audit.json`):
 
@@ -258,20 +256,20 @@ It took **7+ debugging iterations** to get the first clean H100 train. Documente
 
 We'd rather state clearly what we did **not** prove.
 
-1. **bear has real, structural advantages we don't beat.** bear is **deletion**, so it's verbatim (no hallucination risk — it can only keep your real tokens), **query-agnostic** (compress a document *once* and reuse the result across many different questions; we must recompress per question), and **needs no training**. Our model can mis-read a question and drop the answer's evidence — **measured: 18% (9/50) of HotpotQA cases are wrong under both an in-family and an independent solver, including a confident wrong-year hallucination** (§4.3). For a compress-once-serve-many cache, or where verbatim fidelity is required, bear is the right tool.
+1. **bear has real, structural advantages we don't beat.** bear is **deletion**, so it's verbatim (no hallucination risk — it can only keep your real tokens), **query-agnostic** (compress a document *once* and reuse the result across many different questions; we must recompress per question), and **needs no training**. Our model can mis-read a question and drop the answer's evidence — **measured: 18% (9/50) of HotpotQA cases are wrong under both an in-family and an independent solver, including a confident wrong-year hallucination** (§A4). For a compress-once-serve-many cache, or where verbatim fidelity is required, bear is the right tool.
 2. **Latency is not a win for us.** At the API level the teacher and bear are essentially tied (≈1.08s vs ≈1.05s mean per call — both dominated by a network round-trip; see `results/latency_api.json`). bear's structural speed edge (deletion is not autoregressive generation, and it amortizes over reuse) is real but is **not** demonstrated as a wall-clock win in our measurements. We claim an **accuracy/token** win, not a speed win.
-3. **Two of four benchmarks are not significant** (MuSiQue, SQuAD) — see §4.2. Positive everywhere, proven on two.
-4. **Stacking fails, sometimes significantly** (§4.2) — ReCompress replaces bear in this regime; it does not layer on it.
+3. **Two of four benchmarks are not significant** (MuSiQue, SQuAD) — see §A3. Positive everywhere, proven on two.
+4. **Stacking fails, sometimes significantly** (§A3) — ReCompress replaces bear in this regime; it does not layer on it.
 5. **We did not beat published SOTA** (LLMLingua / LLMLingua-2 — multi-year Microsoft Research efforts). We beat **bear-1.1, the challenge sponsor's product**, which is the relevant comparison for this track. Our distinction vs LLMLingua is methodological: they **delete** tokens (extractive); we **rewrite** them (abstractive + query-aware).
 6. **n=50 per benchmark, ratio=0.3 only.** A larger n and a ratio sweep would tighten the CIs and map where the win holds; out of scope for 24h.
 7. **The student over-compresses** (~3.8% vs the ~30% target). It wins anyway, but the budget knob isn't well-calibrated yet.
-8. **Much of the F1 is carried by the answer span, more for us than for bear** (§4.3). 66% of ours' compressions contain the gold verbatim; masking the gold span drops ours' F1 by 65% (0.737→0.256) vs bear's 31% (0.452→0.314). So the headline margin is substantially "our query-aware compression keeps the answer-bearing span at 3.5% budget where bear's deletion at 30% loses it" — *better span selection*, not *better reasoning*. We measured this both ways and report it rather than letting it be inferred.
+8. **Much of the F1 is carried by the answer span, more for us than for bear** (§A4). 66% of ours' compressions contain the gold verbatim; masking the gold span drops ours' F1 by 65% (0.737→0.256) vs bear's 31% (0.452→0.314). So the headline margin is substantially "our query-aware compression keeps the answer-bearing span at 3.5% budget where bear's deletion at 30% loses it" — *better span selection*, not *better reasoning*. We measured this both ways and report it rather than letting it be inferred.
 
 ---
 
 ## 9. Future work — the "bear-improver" model
 
-The stacking failure (§4.2) points directly at the *original* thesis and the most interesting next step.
+The stacking failure (§A3) points directly at the *original* thesis and the most interesting next step.
 
 `ours→bear` fails because bear deletes our already-dense output and mangles it. But flip the objective: instead of training a student to *replace* bear, train a small model whose job is to **make bear's *output* better** — a query-aware post-processor that takes bear's deleted token-soup and repairs/re-densifies it for the question. That's a *different* training objective (input = bear output, target = a good compression of it), and it would be **additive and flattering** to bear rather than competitive — it extends bear into the query-aware regime instead of supplanting it. Not built yet; it's the clean next experiment.
 
