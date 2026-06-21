@@ -24,6 +24,13 @@ ReCompress is one research project in **two acts**:
 
 ---
 
+## What we built
+
+- **A distilled 1.5B query-aware compressor** (`recompress/`) — DeepSeek teacher → Qwen2.5-1.5B + LoRA on a Modal H100, ~$10 total. Runs offline.
+- **Re:Zero, a flat-context multi-turn memory** (`rezero/`) — trauma (protected facts) + compressed checkpoint + recent delta, capped at ~300 tokens, with the Act 1 model as the checkpoint compressor. Keeps a 12-turn conversation flat at ~184 tokens vs a naive agent's 1,482.
+- **A research-grade evaluation harness** — a 5-bar paired benchmark (same compression instruction, ours realizing ~8.5× fewer tokens) with bootstrap 95% CIs across four QA datasets, a cross-solver audit (independent judge), a mask-the-answer audit, and a documented v1→v3 distillation trajectory including the failures. *(All numbers in the Appendix.)*
+
+
 
 ## Architecture
 
@@ -84,13 +91,6 @@ flowchart LR
     style V2 fill:#FAEEDA,stroke:#854F0B,color:#633806
     style V3 fill:#E1F5EE,stroke:#0F6E56,color:#085041
 ```
-
-
-## What we built
-
-- **A distilled 1.5B query-aware compressor** (`recompress/`) — DeepSeek teacher → Qwen2.5-1.5B + LoRA on a Modal H100, ~$10 total. Runs offline.
-- **Re:Zero, a flat-context multi-turn memory** (`rezero/`) — trauma (protected facts) + compressed checkpoint + recent delta, capped at ~300 tokens, with the Act 1 model as the checkpoint compressor. Keeps a 12-turn conversation flat at ~184 tokens vs a naive agent's 1,482.
-- **A research-grade evaluation harness** — a 5-bar paired benchmark (same compression instruction, ours realizing ~8.5× fewer tokens) with bootstrap 95% CIs across four QA datasets, a cross-solver audit (independent judge), a mask-the-answer audit, and a documented v1→v3 distillation trajectory including the failures. *(All numbers in the Appendix.)*
 
 ---
 
