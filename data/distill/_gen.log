@@ -1,0 +1,36 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+loading 300 hotpotqa instances (streaming)...
+loaded 300 instances; compressing with 8 workers...
+  [10/300] done (ok=10 err=0)
+  [20/300] done (ok=20 err=0)
+  [30/300] done (ok=30 err=0)
+  [40/300] done (ok=40 err=0)
+  [50/300] done (ok=50 err=0)
+  [60/300] done (ok=60 err=0)
+  [70/300] done (ok=70 err=0)
+  [80/300] done (ok=80 err=0)
+  [90/300] done (ok=90 err=0)
+  [100/300] done (ok=100 err=0)
+  [110/300] done (ok=110 err=0)
+  [120/300] done (ok=120 err=0)
+  [130/300] done (ok=130 err=0)
+  [140/300] done (ok=140 err=0)
+  [150/300] done (ok=150 err=0)
+  [160/300] done (ok=160 err=0)
+  [170/300] done (ok=170 err=0)
+  [180/300] done (ok=180 err=0)
+  [190/300] done (ok=190 err=0)
+  [200/300] done (ok=200 err=0)
+  [210/300] done (ok=210 err=0)
+  [220/300] done (ok=220 err=0)
+  [230/300] done (ok=230 err=0)
+  [240/300] done (ok=240 err=0)
+  [250/300] done (ok=250 err=0)
+  [260/300] done (ok=260 err=0)
+  [270/300] done (ok=270 err=0)
+  [280/300] done (ok=280 err=0)
+  [290/300] done (ok=290 err=0)
+  [300/300] done (ok=300 err=0)
+
+wrote 300 pairs to data/distill/train.jsonl
+avg input: 1364 tok | avg output: 30 tok | avg ratio: 2.23%

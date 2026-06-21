@@ -1,0 +1,76 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+loading 50 hotpotqa instances...
+loaded 50 instances
+
+=== running bar: none ===
+  [none] 5/50 done (ok=5 err=0)
+  [none] 10/50 done (ok=10 err=0)
+  [none] 15/50 done (ok=15 err=0)
+  [none] 20/50 done (ok=20 err=0)
+  [none] 25/50 done (ok=25 err=0)
+  [none] 30/50 done (ok=30 err=0)
+  [none] 35/50 done (ok=35 err=0)
+  [none] 40/50 done (ok=40 err=0)
+  [none] 45/50 done (ok=45 err=0)
+  [none] 50/50 done (ok=50 err=0)
+
+=== running bar: bear ===
+  [bear] 5/50 done (ok=5 err=0)
+  [bear] 10/50 done (ok=10 err=0)
+  [bear] 15/50 done (ok=15 err=0)
+  [bear] 20/50 done (ok=20 err=0)
+  [bear] 25/50 done (ok=25 err=0)
+  [bear] 30/50 done (ok=30 err=0)
+  [bear] 35/50 done (ok=35 err=0)
+  [bear] 40/50 done (ok=40 err=0)
+  [bear] 45/50 done (ok=45 err=0)
+  [bear] 50/50 done (ok=50 err=0)
+
+=== running bar: ours ===
+  [ours] 5/50 done (ok=5 err=0)
+  [ours] 10/50 done (ok=10 err=0)
+  [ours] 15/50 done (ok=15 err=0)
+  [ours] 20/50 done (ok=20 err=0)
+  [ours] 25/50 done (ok=25 err=0)
+  [ours] 30/50 done (ok=30 err=0)
+  [ours] 35/50 done (ok=35 err=0)
+  [ours] 40/50 done (ok=40 err=0)
+  [ours] 45/50 done (ok=45 err=0)
+  [ours] 50/50 done (ok=50 err=0)
+
+=== running bar: bear→ours ===
+  [bear→ours] 5/50 done (ok=5 err=0)
+  [bear→ours] 10/50 done (ok=10 err=0)
+  [bear→ours] 15/50 done (ok=15 err=0)
+  [bear→ours] 20/50 done (ok=20 err=0)
+  [bear→ours] 25/50 done (ok=25 err=0)
+  [bear→ours] 30/50 done (ok=30 err=0)
+  [bear→ours] 35/50 done (ok=35 err=0)
+  [bear→ours] 40/50 done (ok=40 err=0)
+  [bear→ours] 45/50 done (ok=45 err=0)
+  [bear→ours] 50/50 done (ok=50 err=0)
+
+=== running bar: ours→bear ===
+  [ours→bear] 5/50 done (ok=5 err=0)
+  [ours→bear] 10/50 done (ok=10 err=0)
+  [ours→bear] 15/50 done (ok=15 err=0)
+  [ours→bear] 20/50 done (ok=20 err=0)
+  [ours→bear] 25/50 done (ok=25 err=0)
+  [ours→bear] 30/50 done (ok=30 err=0)
+  [ours→bear] 35/50 done (ok=35 err=0)
+  [ours→bear] 40/50 done (ok=40 err=0)
+  [ours→bear] 45/50 done (ok=45 err=0)
+  [ours→bear] 50/50 done (ok=50 err=0)
+
+============================================================
+{
+  "headline_secured": true,
+  "stacking_bonus": false,
+  "summary": "HEADLINE: PASS \u2014 ours beats bear at matched budget."
+}
+
+Deltas vs bear (paired bootstrap 95% CI):
+  none         Δ=+0.425  CI=(+0.285, +0.571)  excludes0=True ★
+  ours         Δ=+0.395  CI=(+0.259, +0.538)  excludes0=True ★
+  bear→ours    Δ=+0.123  CI=(+0.027, +0.233)  excludes0=True ★
+  ours→bear    Δ=+0.034  CI=(-0.084, +0.163)  excludes0=False

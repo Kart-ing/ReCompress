@@ -4,3 +4,14 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
+
+# virtualenv — never commit (970M)
+.venv/
+venv/
+
+# transient run logs / pids (kept in experiments/ archive instead)
+logs/*.pid
+*.pid
+
+# matplotlib font cache etc
+.cache/

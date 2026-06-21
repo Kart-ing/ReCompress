@@ -1,0 +1,136 @@
+{
+  "ratio": 0.3,
+  "n": 1,
+  "bars": {
+    "none": {
+      "bar": "none",
+      "ratio": 0.3,
+      "mean_f1": 1.0,
+      "n_ok": 1,
+      "n_err": 0,
+      "per_instance": [
+        {
+          "id": "5ac51a055542994611c8b390",
+          "question": "What is the name of one the ex-security officials that means The Institute?",
+          "gold": "Mossad",
+          "pred": "Mossad",
+          "f1": 1.0,
+          "n_tokens_in": 1816,
+          "n_tokens_out": 1816,
+          "error": null
+        }
+      ]
+    },
+    "bear": {
+      "bar": "bear",
+      "ratio": 0.3,
+      "mean_f1": 0.0,
+      "n_ok": 1,
+      "n_err": 0,
+      "per_instance": [
+        {
+          "id": "5ac51a055542994611c8b390",
+          "question": "What is the name of one the ex-security officials that means The Institute?",
+          "gold": "Mossad",
+          "pred": "Fels Institute Government",
+          "f1": 0.0,
+          "n_tokens_in": 1816,
+          "n_tokens_out": 544,
+          "error": null
+        }
+      ]
+    },
+    "ours": {
+      "bar": "ours",
+      "ratio": 0.3,
+      "mean_f1": 1.0,
+      "n_ok": 1,
+      "n_err": 0,
+      "per_instance": [
+        {
+          "id": "5ac51a055542994611c8b390",
+          "question": "What is the name of one the ex-security officials that means The Institute?",
+          "gold": "Mossad",
+          "pred": "Mossad",
+          "f1": 1.0,
+          "n_tokens_in": 1816,
+          "n_tokens_out": 25,
+          "error": null
+        }
+      ]
+    },
+    "bear\u2192ours": {
+      "bar": "bear\u2192ours",
+      "ratio": 0.3,
+      "mean_f1": 1.0,
+      "n_ok": 1,
+      "n_err": 0,
+      "per_instance": [
+        {
+          "id": "5ac51a055542994611c8b390",
+          "question": "What is the name of one the ex-security officials that means The Institute?",
+          "gold": "Mossad",
+          "pred": "Mossad",
+          "f1": 1.0,
+          "n_tokens_in": 1816,
+          "n_tokens_out": 50,
+          "error": null
+        }
+      ]
+    },
+    "ours\u2192bear": {
+      "bar": "ours\u2192bear",
+      "ratio": 0.3,
+      "mean_f1": 1.0,
+      "n_ok": 1,
+      "n_err": 0,
+      "per_instance": [
+        {
+          "id": "5ac51a055542994611c8b390",
+          "question": "What is the name of one the ex-security officials that means The Institute?",
+          "gold": "Mossad",
+          "pred": "Mossad",
+          "f1": 1.0,
+          "n_tokens_in": 1816,
+          "n_tokens_out": 7,
+          "error": null
+        }
+      ]
+    }
+  },
+  "deltas_vs_bear": {
+    "none": {
+      "mean_delta": 1.0,
+      "ci_lo": 1.0,
+      "ci_hi": 1.0,
+      "excludes_zero": true,
+      "n_paired": 1
+    },
+    "ours": {
+      "mean_delta": 1.0,
+      "ci_lo": 1.0,
+      "ci_hi": 1.0,
+      "excludes_zero": true,
+      "n_paired": 1
+    },
+    "bear\u2192ours": {
+      "mean_delta": 1.0,
+      "ci_lo": 1.0,
+      "ci_hi": 1.0,
+      "excludes_zero": true,
+      "n_paired": 1
+    },
+    "ours\u2192bear": {
+      "mean_delta": 1.0,
+      "ci_lo": 1.0,
+      "ci_hi": 1.0,
+      "excludes_zero": true,
+      "n_paired": 1
+    }
+  },
+  "decision": {
+    "headline_secured": true,
+    "stacking_bonus": true,
+    "summary": "HEADLINE: PASS \u2014 ours beats bear at matched budget."
+  }
+}

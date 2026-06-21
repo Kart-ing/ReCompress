@@ -1,0 +1,9 @@
+=== loss curve (overfitting check) ===
+  epoch 1.00: train_loss=1.8171  eval_loss=1.7595  gap(eval-train)=-0.0576
+  epoch 2.00: train_loss=1.7437  eval_loss=1.7438  gap(eval-train)=+0.0001
+  epoch 3.00: train_loss=1.7355  eval_loss=1.7418  gap(eval-train)=+0.0063
+OVERFITTING SIGNAL: no — eval_loss did not rise
+  train examples: 261 | eval examples: 29
+  final train_loss: 1.8178
+  eval_loss per epoch: [1.7595, 1.7438, 1.7418]
+  OVERFITTING: ✅ no (eval_loss stable/falling)
