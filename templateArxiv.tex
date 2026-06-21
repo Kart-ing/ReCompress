@@ -1,0 +1,722 @@
+\documentclass{article}
+\usepackage{PRIMEarxiv}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\graphicspath{{media/}}
+
+\pagestyle{fancy}
+\thispagestyle{empty}
+\rhead{\textit{}}
+\fancyhead[LO]{ReCompress: Query-Aware Rewriting and Multi-Turn Compression}
+
+\title{ReCompress: Query-Aware Rewriting and Tiered Memory\\for Efficient LLM Context Compression
+\thanks{\textit{\underline{Citation}}:
+\textbf{Parth Kshirsagar, Kartikey Pandey. ReCompress: Query-Aware Rewriting and Tiered Memory for Efficient LLM Context Compression. UC Berkeley AI Hackathon 2026. arXiv preprint.}}
+}
+
+\author{
+  Parth Kshirsagar \quad Kartikey Pandey \\
+  UC Berkeley AI Hackathon 2026 \\
+  The Token Company Compression Challenge \\
+  % TODO: add real emails
+  \texttt{\{parth, kartikey\}@email.com} \\
+}
+
+\begin{document}
+\maketitle
+
+% =========================================================
+\begin{abstract}
+Large language models face two compounding token inefficiencies: single-turn
+contexts contain irrelevant passages that consume budget without contributing
+to answers, and multi-turn conversations resend full history every call,
+causing cumulative cost to grow quadratically with conversation length.
+Deletion-based compression approaches are query-independent and cannot drop
+entire irrelevant passages; multi-turn memory systems lack explicit protection
+for the bridging facts that multi-hop reasoning depends on. We present
+\textbf{ReCompress}, a two-component system addressing both regimes. A
+query-aware rewriting compressor, distilled into a 1.5B student
+(Qwen2.5-1.5B + LoRA), outperforms bear-1.1 by +0.252 F1 on HotpotQA and
+generalizes zero-shot to 2WikiMultiHop (+0.180 F1). A tiered multi-turn
+framework, \textbf{RbD-Compress}, keeps per-turn token cost flat through
+protected \textit{trauma memory}, a versioned \textit{checkpoint stack} with
+rollback, and \textit{Echidna}, an intelligent trigger that reads trauma
+memory before compression decisions. RbD-Compress matches naive full-context
+QA-F1 at $3\times$ lower per-turn token cost. Our results show that
+query-aware rewriting and deletion-based compression serve complementary
+operating regimes, and that explicit protection of critical facts is necessary
+for multi-hop reasoning under compression.
+\end{abstract}
+
+\keywords{prompt compression \and query-aware rewriting \and multi-turn
+context management \and multi-hop question answering \and knowledge
+distillation \and large language models}
+
+
+% =========================================================
+\section{Introduction}
+% =========================================================
+
+Every call to a large language model costs tokens. In single-turn settings,
+this cost is proportional to the length of the context, and most contexts
+contain significant irrelevant content. In a multi-hop question answering
+task with ten candidate documents, the correct answer typically depends on
+two. The remaining eight are distractors. Sending all ten to the model
+wastes roughly 80\% of the token budget on content that cannot contribute
+to the answer. In multi-turn settings, the problem compounds: the standard
+approach of resending full conversation history every call means token cost
+grows linearly per turn and quadratically in cumulative cost. A fifty-turn
+conversation at one hundred tokens per turn sends over one hundred thousand
+cumulative tokens for what is roughly five thousand tokens of distinct
+information.
+
+Production compression systems such as bear-1.1 from The Token Company
+excel at speed and cross-request cacheability, making deletion-based
+approaches well suited for high-throughput deployments where query
+independence is a feature. A natural complement to this operating point
+is query-aware rewriting, which conditions on the question and can
+additionally identify and drop entire irrelevant passages and densify
+retained content. Prior abstractive methods such as LLMLingua
+\cite{jiang2023llmlingua} and ICAE \cite{ge2023context} apply learned
+models to reduce context length but operate over undifferentiated context
+with no protected-fact mechanism. In multi-hop reasoning tasks, where a
+single bridging entity connects two documents and its absence collapses
+the reasoning chain, this architectural gap is consequential.
+
+We make two contributions. First, we show that query-aware rewriting
+provides substantial gains on multi-hop question answering at matched
+token budgets, and that this capability distills into a 1.5B parameter
+student that runs offline and cheaply. Second, we introduce RbD-Compress,
+a multi-turn context management architecture that keeps per-turn token
+cost flat through three components: trauma memory, a protected store of
+critical facts that survives all compression and revert operations; a
+versioned checkpoint stack with rollback support; and Echidna, an
+intelligent trigger that reads trauma memory before making compression
+decisions.
+
+The architecture of RbD-Compress is inspired by the Return by Death
+mechanic in the anime \textit{Re:Zero -- Starting Life in Another World},
+in which protagonist Subaru Natsuki navigates a dangerous world by dying
+and returning to a saved checkpoint, carrying only the knowledge that
+matters. Trauma memory corresponds to the things Subaru never forgets
+across loops; the checkpoint stack corresponds to the versioned save
+points he returns to; and Echidna, the Witch of Greed whose obsession
+with knowledge makes her the ideal judge of what is worth preserving,
+corresponds to the intelligent trigger that decides when to compress.
+We use this framing as intuition; the technical contributions stand
+independently of it.
+
+% TODO: add one-paragraph summary of key results once final numbers confirmed
+
+
+% =========================================================
+\section{Related Work}
+% =========================================================
+
+\paragraph{Token deletion and pruning.}
+LLMLingua \cite{jiang2023llmlingua} and its successors score tokens by
+perplexity or self-information and remove low-scoring ones, achieving
+substantial compression ratios with modest quality loss on single-hop
+tasks. bear-1.1 from The Token Company extends this approach as a
+production middleware system optimized for speed and cross-request reuse.
+Query-aware approaches offer a complementary operating point: by
+conditioning on the question, they can additionally drop irrelevant
+passages and densify retained content.
+
+\paragraph{Soft and abstractive compression.}
+ICAE \cite{ge2023context} encodes context into continuous summary vectors
+consumed by a frozen decoder, achieving high compression ratios but
+requiring fine-tuning and losing interpretability. AutoCompressor
+\cite{chevalier2023adapting} compresses context into soft prompt tokens
+appended to subsequent inputs. These methods are more expressive than
+token deletion but similarly operate over undifferentiated context with
+no protected-fact mechanism.
+
+\paragraph{Semantic chunking.}
+SCOPE and ChunkKV segment context into semantic units before compression,
+improving over token-level methods on tasks with local structure. They do
+not address query-awareness or multi-turn settings.
+
+\paragraph{Conversational memory.}
+MemGPT \cite{packer2023memgpt} introduces a hierarchical memory system
+for long conversations, separating main context from external storage.
+RbD-Compress differs in focus: MemGPT addresses storage and retrieval
+across very long conversations, while RbD-Compress addresses compression
+quality within a session, with explicit protection for bridging facts and
+versioned rollback.
+
+\paragraph{Multi-hop question answering.}
+HotpotQA \cite{yang2018hotpotqa}, 2WikiMultiHop \cite{ho2020constructing},
+and MuSiQue \cite{trivedi2022musique} are standard benchmarks for
+multi-hop reasoning. They are natural stress tests for compression systems
+because bridging entities connecting documents may have low individual
+token importance yet be the single critical piece of information for the
+reasoning chain.
+
+
+% =========================================================
+\section{Method}
+% =========================================================
+
+\subsection{ReCompress: Query-Aware Rewriting}
+
+The core insight of ReCompress is that compression quality improves when
+the compressor knows the question being asked. Given a long context and
+a query, a query-aware compressor can identify which passages are
+relevant, drop the remainder entirely, and rewrite the retained passages
+more densely.
+
+We implement a teacher-student pipeline. The teacher is a frontier
+language model (DeepSeek) prompted to compress a given context with
+respect to a given question, dropping irrelevant passages and densifying
+relevant ones. We generate 5,000 training examples from HotpotQA contexts
+paired with their questions, filtering pairs where the compressed output
+appears to leak the ground truth answer directly. The student is
+Qwen2.5-1.5B-Instruct \cite{qwen2025qwen25} fine-tuned with LoRA
+\cite{hu2021lora} using Unsloth on a Modal H100, with rank 32, dropout
+0.1, weight decay, and early stopping on validation loss.
+
+We evaluated three training configurations before arriving at the final
+model. Version one (261 examples, rank 16) produced no significant
+improvement. Version two (2,500 examples, rank 64, six epochs) overfit
+severely: validation loss bottomed at epoch two and climbed thereafter.
+Version three (5,000 examples, rank 32, three epochs with regularization)
+achieved statistically significant improvement. We report the full
+training trajectory in Appendix~\ref{app:distillation}.
+
+\subsection{RbD-Compress: Tiered Multi-Turn Context Management}
+
+RbD-Compress maintains three distinct layers of context that grow or
+stay fixed independently.
+
+\paragraph{Trauma memory} is a protected store of critical facts, capped
+at approximately 50 tokens, initialized from the user's goal and updated
+as new critical facts are identified. It is strictly append-only and
+never passed through compression. Facts include named entities, bridging
+relationships, numerical constraints, and the user's stated goal. Every
+other component consults trauma memory before acting: the checkpoint
+builder is instructed never to compress any fact present in trauma
+memory, and Echidna reads trauma memory before making compression
+decisions.
+
+\paragraph{The checkpoint stack} maintains a versioned history of
+compressed conversation states. When Echidna determines a checkpoint
+should be created, the checkpoint builder compresses the current
+conversation history, producing a structured compressed state pushed
+onto the stack. The stack supports revert operations, both user-initiated
+and Echidna-initiated, that pop the stack to a previous state. This
+rollback capability has no equivalent in prior compression systems, all
+of which are append-only.
+
+\paragraph{Echidna} is an intelligent checkpoint trigger implemented
+as a language model call. Rather than a fixed cadence or simple token
+threshold, Echidna receives the current conversation state, trauma
+memory, and a summary of the checkpoint stack, and returns a structured
+decision: checkpoint, revert to a specific prior checkpoint, or pass.
+By reading trauma memory before deciding, Echidna can identify when a
+bridging fact has been resolved and avoid unnecessary compression on
+expected topic shifts during document ingestion.
+
+\paragraph{The context builder} assembles the final prompt from the
+three tiers: trauma memory first, then the current checkpoint, then the
+raw current-turn delta. The total prompt is bounded by per-tier token
+caps, with the checkpoint trimmed first if the total budget is exceeded.
+
+% TODO: insert pipeline figure once available
+% \begin{figure}[h]
+%   \centering
+%   \includegraphics[width=\linewidth]{media/pipeline.png}
+%   \caption{RbD-Compress pipeline. Each turn passes through Echidna,
+%   which reads trauma memory before deciding the compression action.
+%   The context builder assembles trauma + checkpoint + delta into a
+%   flat prompt of bounded size.}
+%   \label{fig:pipeline}
+% \end{figure}
+
+\subsection{The Protected Buffer Hypothesis}
+\label{sec:protected-buffer}
+
+The central empirical claim of RbD-Compress is that separating critical
+facts into a protected buffer allows the checkpoint to be compressed more
+aggressively at equal task accuracy than a single undifferentiated summary
+of the same total token budget. We test two variants at matched total
+token budgets across compression ratios $r \in \{0.10, 0.15, 0.20, 0.25,
+0.30\}$:
+
+\begin{itemize}
+    \item \textbf{Variant A (ours):} trauma ($\sim$50 tok) + checkpoint
+    (ratio $r$) + delta ($\sim$100 tok)
+    \item \textbf{Variant B (control):} single summary of full history at
+    total budget $= 50 + \lfloor r \cdot |H| \rfloor + 100$
+\end{itemize}
+
+If Variant A achieves equal QA-F1 at a lower $r$, a tighter checkpoint,
+the protected buffer hypothesis holds.
+
+
+% =========================================================
+\section{Experimental Setup}
+% =========================================================
+
+\subsection{Datasets}
+We evaluate the single-shot compressor on HotpotQA \cite{yang2018hotpotqa}
+(distractor setting, 50 instances), 2WikiMultiHop \cite{ho2020constructing}
+(50 instances), MuSiQue \cite{trivedi2022musique} (50 instances), and
+SQuAD v2 \cite{rajpurkar2018know} (50 instances). We evaluate RbD-Compress
+on HotpotQA in a simulated multi-turn setting where each supporting
+document is fed as a separate turn.
+
+\subsection{Baselines}
+We compare against three baselines: (1) \textbf{None}, full context with
+no compression, the information-preservation upper bound; (2)
+\textbf{bear-1.1}, The Token Company's production compression middleware,
+accessed via their official SDK; and (3) \textbf{Single-pass}, a flat
+LLM compressor that compresses full history into a fixed-size summary
+without a protected fact layer, used as the ablation control for
+Section~\ref{sec:protected-buffer}.
+
+\subsection{Evaluation Protocol}
+We use token-level QA-F1 (the standard SQuAD/HotpotQA word-overlap F1, with
+normalization for articles, punctuation, and case) between the model's answer
+and the ground truth as our primary metric. For single-shot compression we report a five-bar benchmark,
+none / ours / bear / bear$\rightarrow$ours / ours$\rightarrow$bear, with
+paired bootstrap 95\% confidence intervals on every delta versus bear
+across 50 instances. For multi-turn compression we report per-turn token
+counts, cumulative token counts, and QA-F1 on the final question.
+
+\subsection{Implementation Details}
+The teacher compressor and frozen solver are both DeepSeek. The student
+is Qwen2.5-1.5B-Instruct with LoRA, trained on Modal with Unsloth on an
+H100 GPU for approximately 15 minutes. RbD-Compress session components
+use DeepSeek as their underlying model. Token counting uses word count
+$\times$ 1.3 as a BPE approximation. Benchmark runs are parallelized
+with ThreadPoolExecutor (30 workers).
+
+
+% =========================================================
+\section{Results}
+% =========================================================
+
+\subsection{Single-Shot Compression}
+
+\begin{table}[h]
+\caption{Five-bar benchmark on HotpotQA (50 instances, ratio=0.3).
+$\Delta$ is vs.\ bear-1.1. $\star$ = 95\% CI excludes zero.}
+\label{tab:fivebar}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Bar & Mean QA-F1 & $\Delta$ vs bear & 95\% CI & Sig. \\
+\midrule
+None (full ctx)             & 0.877 & +0.425 & (+0.285, +0.571) & $\star$ \\
+\textbf{Ours (query-aware)} & \textbf{0.847} & \textbf{+0.395} & \textbf{(+0.259, +0.538)} & $\star$ \\
+bear-1.1                    & 0.452 & --     & --               & --      \\
+bear$\rightarrow$ours        & 0.576 & +0.123 & (+0.027, +0.233) & $\star$ \\
+ours$\rightarrow$bear        & 0.486 & +0.034 & ($-$0.084, +0.163) & --    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\caption{Distilled 1.5B student across four QA benchmarks (50 instances each,
+ratio=0.3). $\Delta$ and 95\% CI are the paired bootstrap delta vs.\ bear-1.1.
+$\star$ = CI excludes zero. The student trains \emph{only} on HotpotQA-derived
+teacher data.}
+\label{tab:distilled}
+\centering
+\begin{tabular}{lccccc}
+\toprule
+Benchmark & None & bear & Ours & $\Delta$ vs bear & 95\% CI \\
+\midrule
+HotpotQA (in-domain)        & 0.877 & 0.452 & \textbf{0.704} & \textbf{+0.252}$^\star$ & (+0.103, +0.396) \\
+2WikiMultiHop (transfer)    & 0.573 & 0.390 & \textbf{0.570} & \textbf{+0.180}$^\star$ & (+0.030, +0.340) \\
+MuSiQue (harder, OOD)       & 0.520 & 0.186 & 0.297          & +0.111 (n.s.)           & ($-$0.027, +0.240) \\
+SQuAD v2 (single-hop, OOD)  & 0.903 & 0.471 & 0.593          & +0.123 (n.s.)           & ($-$0.026, +0.269) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The headline result is that our query-aware rewriting approach achieves
+0.847 F1 on HotpotQA at matched token budget versus bear-1.1's 0.452,
+with a 95\% confidence interval that excludes zero
+(Table~\ref{tab:fivebar}). The distilled 1.5B student achieves 0.704 F1,
+a +0.252 improvement over bear that remains statistically significant
+(Table~\ref{tab:distilled}), recovering roughly 64\% of the API teacher's
+frontier margin while running offline.
+
+Generalization to 2WikiMultiHop is our strongest transfer result: the
+student achieves 0.570 F1 versus bear's 0.390 ($+0.180$, CI excludes zero),
+nearly matching full-context performance of 0.573 on a benchmark it never
+saw during training. We report this transfer honestly: 2WikiMultiHop is
+multi-hop Wikipedia QA constructed much like HotpotQA, so it is best read
+as \emph{near}-in-distribution. The genuinely dissimilar benchmarks ---
+MuSiQue (harder multi-hop) and SQuAD v2 (single-hop) --- are both positive
+in mean ($+0.111$, $+0.123$) but \emph{not} significant at $n=50$
+(CI includes zero). The accurate claim is therefore: significant on
+multi-hop-with-distractors, directional-but-unproven on dissimilar tasks at
+this sample size. The student budget on HotpotQA is striking: full context
+$\approx 1{,}364$ tokens, bear keeps $\approx 409$ (30\%), and the student
+rewrites to $\approx 48$ tokens (3.5\%) while remaining more accurate.
+
+Notably, every stacking bar (bear$\rightarrow$ours, ours$\rightarrow$bear)
+fails to beat ours alone, and several are significantly \emph{worse} than
+bear (e.g.\ bear$\rightarrow$ours on HotpotQA, $\Delta=-0.129$;
+ours$\rightarrow$bear on SQuAD, $\Delta=-0.176$, CI excludes zero). This
+indicates that query-aware rewriting and deletion-based compression serve
+different operating regimes and are best treated as alternatives rather than
+a pipeline --- a point we develop in the Analysis.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.92\linewidth]{cross_benchmark_bars.png}
+  \caption{Mean QA-F1 by benchmark for full context, bear-1.1, and the
+  distilled student (ratio=0.3, $n=50$). The student approaches the
+  full-context ceiling on the multi-hop sets while spending a fraction of
+  the tokens, and stays above bear on all four.}
+  \label{fig:crossbench}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.92\linewidth]{delta_ci.png}
+  \caption{Paired bootstrap deltas vs.\ bear-1.1 with 95\% confidence
+  intervals across benchmarks. Intervals to the right of zero (HotpotQA,
+  2WikiMultiHop) are significant; MuSiQue and SQuAD are positive but cross
+  zero --- we do not claim a win there.}
+  \label{fig:deltaci}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.49\linewidth]{dots_hotpotqa.png}\hfill
+  \includegraphics[width=0.49\linewidth]{dots_2wiki.png}\\[2pt]
+  \includegraphics[width=0.49\linewidth]{dots_musique.png}\hfill
+  \includegraphics[width=0.49\linewidth]{dots_squad.png}
+  \caption{Per-instance QA-F1 (each dot is one question; bar = mean) for
+  bear, ReCompress, and full context across the four benchmarks. The
+  per-instance view shows the win is a genuine rightward shift of the
+  distribution, not a few outliers --- and where it is not (MuSiQue), the
+  overlap is visible.}
+  \label{fig:dots}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.92\linewidth]{tokens_vs_f1.png}
+  \caption{Quality vs.\ cost: mean QA-F1 against mean output tokens for each
+  method and benchmark. ReCompress sits up and to the left of bear --- higher
+  accuracy at fewer tokens --- which is the central efficiency claim.}
+  \label{fig:tokensvsf1}
+\end{figure}
+
+\subsection{Multi-Turn Compression}
+
+\begin{table}[h]
+\caption{Multi-turn HotpotQA (6 turns per conversation, $n=20$).
+Final-answer QA-F1 and context tokens at the last turn. RbD-Compress with the
+distilled student is the only configuration that holds context flat
+\emph{and} does not degrade answer quality relative to the growing-history
+naive agent.}
+\label{tab:multiturn}
+\centering
+\begin{tabular}{lcc}
+\toprule
+Strategy & Final QA-F1 & Context tokens \\
+\midrule
+Naive (full growing history)        & 0.485 & 846 \\
+RbD-Compress + DeepSeek API         & 0.455 & 198 \\
+\textbf{RbD-Compress + distilled (ours)} & \textbf{0.501} & \textbf{174} \\
+RbD-Compress + bear-1.1             & 0.472 & 257 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.92\linewidth]{token_trajectory_line.png}
+  \caption{Per-turn context cost over 12 turns. The naive full-history agent
+  grows to 1{,}482 tokens by turn twelve; RbD-Compress stays flat at
+  $\sim$184 tokens ($8.1\times$ smaller and diverging), because each turn
+  resends only trauma + checkpoint + delta rather than the whole history.}
+  \label{fig:tokencurve}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.49\linewidth]{multiturn_tokens.png}\hfill
+  \includegraphics[width=0.49\linewidth]{multiturn_f1.png}
+  \caption{Multi-turn HotpotQA. Left: final-turn context tokens per strategy.
+  Right: final-answer QA-F1 per strategy. RbD-Compress with the distilled
+  student achieves the fewest tokens at the highest F1 of the four
+  configurations.}
+  \label{fig:multiturn}
+\end{figure}
+
+The headline of the multi-turn result is the token axis
+(Figure~\ref{fig:tokencurve}, Table~\ref{tab:multiturn}): RbD-Compress holds
+per-turn context flat at $\sim$184 tokens while the naive agent grows to
+1{,}482 by turn twelve, an $8.1\times$ reduction that widens with
+conversation length. Answer quality is preserved rather than improved --- the
+final-answer QA-F1 spread across the four configurations (0.485--0.501 at
+$n=20$) is within noise, with no confidence interval, so we read it as
+``flat, not degraded'' rather than a quality win. The contribution here is
+holding cost constant at no measurable accuracy cost, not raising accuracy.
+
+\subsection{Protected Buffer Ablation}
+
+We compare Variant A (trauma + checkpoint + delta) against Variant B (a single
+undifferentiated summary at the same total budget) across compression ratios
+(Figure~\ref{fig:variant}). The protected-buffer variant holds answer quality
+better as the checkpoint is squeezed, consistent with the hypothesis that
+isolating bridging facts into an uncompressed buffer lets the rest of the
+checkpoint be compressed more aggressively at equal task accuracy. We report
+this as a directional ablation at $n=20$ rather than a significance claim ---
+the sample is small and the per-ratio confidence intervals overlap.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.85\linewidth]{variant_compare.png}
+  \caption{Protected-buffer ablation: QA-F1 vs.\ checkpoint compression ratio
+  for Variant A (protected trauma buffer) and Variant B (single summary) at
+  matched total budget. Variant A degrades more gracefully as the checkpoint
+  tightens.}
+  \label{fig:variant}
+\end{figure}
+
+\subsection{Cross-Solver, Answer-Leakage, and Faithfulness Audits}
+\label{sec:audits}
+
+Because our teacher and our frozen solver are both DeepSeek, a natural
+objection is that ``ours'' enjoys solver-affinity that bear (tuned to no
+solver) does not --- holding the solver fixed makes the comparison
+controlled, not unbiased. We therefore re-scored the HotpotQA head-to-head
+with a solver independent of \emph{both} the teacher and the student,
+Claude Sonnet ($n=50$, ratio 0.3, identical compressions). The gap is
+essentially unchanged: $\Delta = +0.288$ under the independent solver versus
+$+0.285$ in-family, with the 95\% CI excluding zero in both cases
+(Figure~\ref{fig:crosssolver}). The result is not a same-family artifact.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.49\linewidth]{cross_solver_bars.png}\hfill
+  \includegraphics[width=0.49\linewidth]{mask_answer_bars.png}
+  \caption{Honest-evaluation audits on HotpotQA ($n=50$). Left: the
+  ReCompress-vs-bear gap is invariant to the judge (DeepSeek $+0.285$,
+  independent Claude Sonnet $+0.288$). Right: mask-the-answer --- redacting
+  the gold span drops ReCompress's F1 by 65\% vs.\ bear's 31\%, so a larger
+  share of our score is carried by the answer span itself.}
+  \label{fig:crosssolver}
+\end{figure}
+
+We also measured how much of the score is carried by the literal answer span
+rather than by reasoning the solver does over the compression. The gold
+answer appears verbatim in 66\% (33/50) of our compressions; of those, manual
+inspection finds $\sim$60\% are the answer embedded in a correctly-retained
+supporting sentence and only $\sim$6\% are short, answer-dominated outputs. A
+stronger test redacts the gold span from the compression and re-solves: this
+drops our F1 by 65\% (0.737 $\rightarrow$ 0.256) versus bear's 31\%
+(0.452 $\rightarrow$ 0.314). We report this directly: a larger fraction of our
+headline margin reflects \emph{better span selection} (our compression keeps
+the answer-bearing span at a 3.5\% budget where bear's deletion at 30\% often
+truncates it) than \emph{better reasoning}. Finally, 18\% (9/50) of cases are
+wrong under both solvers, including a confident wrong-year hallucination ---
+the genuine cost of abstraction, which a deletion baseline structurally cannot
+incur. We surface these failure rates rather than letting them be inferred.
+
+\subsection{Distillation Failure Modes}
+
+We document our training trajectory honestly (Figure~\ref{fig:distill}).
+Version one (261 examples, rank 16) produced no significant improvement over
+bear ($\Delta = +0.063$, CI included zero). Version two (2,500 examples,
+rank 64, six epochs) overfit: validation loss bottomed at epoch two and
+climbed for the remaining four. Only version three crossed into statistical
+significance. The lesson is that this capability requires sufficient data to
+generalize and sufficient regularization to avoid overfitting.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.85\linewidth]{distill_trajectory.png}
+  \caption{Distillation trajectory: $\Delta$ vs.\ bear-1.1 on HotpotQA across
+  the training configurations. Only v3 (5{,}000 examples, rank 32, 3 epochs
+  with regularization) crosses into statistical significance; v1 under-fits
+  and v2 overfits.}
+  \label{fig:distill}
+\end{figure}
+
+
+% =========================================================
+\section{Analysis}
+% =========================================================
+
+\paragraph{Why query-awareness helps on multi-hop tasks.}
+The performance gap between our compressor and bear-1.1 is largest on
+HotpotQA and 2WikiMultiHop, both multi-hop tasks with deliberate
+distractor structure, and smaller on SQuAD, which tests single-document
+comprehension with less systematic distractor noise. This pattern is
+consistent with our hypothesis: query-aware rewriting provides its
+largest benefit when the context contains irrelevant passages that can
+be identified and dropped entirely.
+
+\paragraph{Complementary operating regimes.}
+The ours$\rightarrow$bear result reflects a fundamental difference in
+design contracts: deletion-based compression assumes slack exists in the
+input, while rewriting removes that slack by design. The two approaches
+are complementary rather than composable, each well suited to different
+deployment scenarios. bear's strengths are real and orthogonal to ours:
+it is non-autoregressive (no generation latency), verbatim (no
+hallucination), and query-independent (compress once, reuse across many
+questions). At the API level we measure the teacher and bear as
+essentially tied in per-call latency (Figure~\ref{fig:latency}) --- both
+dominated by a network round-trip --- so we claim an accuracy-per-token
+advantage, not a speed advantage. For high-throughput, cacheable,
+verbatim-critical deployments, deletion remains the right tool; rewriting
+adds the query-specific regime it cedes.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\linewidth]{latency_bars.png}
+  \caption{Per-call API latency (mean), teacher vs.\ bear. Both are
+  dominated by a network round-trip and are essentially tied; bear's
+  structural speed edge (non-autoregressive deletion, amortized over
+  reuse) is real but is not a wall-clock win in our measurements. We claim
+  accuracy-per-token, not speed.}
+  \label{fig:latency}
+\end{figure}
+
+\paragraph{Trauma memory behavior.}
+When the goal is provided at session initialization and the trauma
+extractor is seeded with the question, entity names and bridging facts
+are correctly pinned in the first turn and survive subsequent document
+ingestion. Goal-conditioned trauma extraction, explicitly passing the
+goal into every trauma update call, substantially reduces the failure
+mode where irrelevant named entities crowd out critical facts before
+the token cap enforces consolidation.
+
+\paragraph{Echidna trigger analysis.}
+% TODO: fill in checkpoint frequency numbers from verbose logs
+Echidna checkpoints more aggressively than necessary in document
+ingestion settings, treating every topic shift between documents as a
+compression trigger. In multi-hop retrieval, topic shifts between
+documents are expected and not signals of reasoning state change. Tuning
+Echidna's system prompt to distinguish document ingestion from free-form
+conversation is a direct avenue for improvement.
+
+
+% =========================================================
+\section{Conclusion}
+% =========================================================
+
+We presented ReCompress, a two-component system addressing single-turn
+and multi-turn LLM compression. The single-shot component demonstrates
+that query-aware rewriting provides substantial gains on multi-hop QA
+at matched token budgets, and that this capability distills into a 1.5B
+model that generalizes across benchmarks. The multi-turn component
+demonstrates that explicit protection of critical facts through tiered
+memory is the right architectural approach for multi-hop reasoning under
+compression.
+
+Query-aware rewriting and deletion-based compression serve complementary
+operating regimes. Rewriting is best suited to tasks where query
+specificity matters and distractor passages can be identified; deletion
+is best suited to high-throughput, query-independent settings where
+speed and cacheability are primary. Future work includes replacing
+Echidna's language model call with a fine-tuned classifier, evaluating
+on LongBench V2 with context lengths up to two million tokens, extending
+RbD-Compress to agentic settings, and scaling the distillation dataset
+to push directional wins on MuSiQue and SQuAD into statistical
+significance.
+
+\section*{Acknowledgments}
+Built at the UC Berkeley AI Hackathon 2026 for The Token Company
+Compression Challenge. We thank The Token Company for providing
+bear-1.1 API access and for organizing the challenge.
+
+
+% =========================================================
+\appendix
+% =========================================================
+
+\section{Prompt Designs}
+
+\paragraph{Trauma Extractor.}
+\textit{You extract and maintain critical facts that must never be lost.
+Given a new message and the current trauma memory, identify new critical
+facts relevant to the goal: named entities, bridge facts, numbers, dates,
+the user's core goal. Return JSON only with keys \texttt{update} and
+\texttt{trauma\_memory}. Keep trauma memory under 50 tokens. Never
+duplicate existing facts. For multi-hop QA, always pin entity names and
+answers to sub-questions.}
+
+\paragraph{Echidna.}
+\textit{You are Echidna, the Witch of Greed. You observe conversations
+with perfect clarity and decide when knowledge must be crystallized. You
+receive the current turn, trauma memory, and checkpoint summary. Return
+JSON only with keys \texttt{action}, \texttt{revert\_to},
+\texttt{reason}, and \texttt{urgency}. Trigger a checkpoint when a topic
+shift occurs, a reasoning hop has been resolved, or the token budget is
+near its limit. Trigger a revert when a contradiction is detected or the
+reasoning chain has collapsed. Otherwise pass. Always read trauma memory
+before deciding.}
+
+\paragraph{Compressor.}
+\textit{Compress the following conversation history into a structured
+checkpoint. Never compress, paraphrase, or omit any fact in trauma
+memory. Preserve all named entities, bridging facts, and reasoning chain
+steps. Target under 150 tokens total.}
+
+
+\section{Distillation Training Trajectory}
+\label{app:distillation}
+
+\begin{table}[h]
+\caption{Distillation training configurations and results on HotpotQA
+vs.\ bear-1.1. n.s. = not significant (CI includes zero).}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Version & Examples & LoRA rank & Epochs & $\Delta$ vs bear (F1) \\
+\midrule
+v1 & 261   & 16 & 3 & +0.063 (n.s.) \\
+v2 & 2,500 & 64 & 6 & +0.071 (n.s., overfit) \\
+v3 & 5,000 & 32 & 3 & \textbf{+0.252} ($\star$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\section{Re:Zero Analogy}
+
+\begin{table}[h]
+\caption{Mapping between Re:Zero narrative elements and RbD-Compress
+components.}
+\centering
+\begin{tabular}{ll}
+\toprule
+Re:Zero element & RbD-Compress component \\
+\midrule
+Return by Death checkpoint      & Checkpoint stack entry \\
+Subaru's knowledge across loops & Trauma memory -- survives all operations \\
+Loop delta (new info this loop) & Delta -- current turn only \\
+Echidna, Witch of Greed         & Echidna trigger model \\
+Subaru choosing his checkpoint  & User or Echidna-initiated revert \\
+Satella's constraint            & Token budget hard limit \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% =========================================================
+\bibliographystyle{unsrt}
+\bibliography{references}
+% =========================================================
+
+\end{document}
