@@ -14,17 +14,19 @@ MIN_HISTORY_FOR_CHECKPOINT = 400
 
 class ReZeroSession:
     def __init__(self, goal: str, use_llm: bool = False, ratio: float = 0.20, verbose: bool = False,
-                 backend: str = "deepseek"):
+                 backend: str = "deepseek", echidna_mode: str | None = None):
         self.goal = goal
         self.use_llm = use_llm
         self.ratio = ratio
         self.verbose = verbose
         self.backend = backend   # compressor backend: deepseek | naive | distilled | bear
+        # echidna_mode: "llm" | "clf" | "mock". None -> follow use_llm (back-compat).
+        self.echidna_mode = echidna_mode or ("llm" if use_llm else "mock")
         self.history: list[dict] = []
         self.trauma_extractor = TraumaExtractor(goal=goal, use_llm=use_llm, verbose=verbose)
         self.checkpoint_builder = CheckpointBuilder(goal=goal, ratio=ratio, use_llm=use_llm, backend=backend)
         self.checkpoint_stack = CheckpointStack()
-        self.echidna = Echidna(use_llm=use_llm, verbose=verbose)
+        self.echidna = Echidna(use_llm=use_llm, verbose=verbose, mode=self.echidna_mode)
         self.context_builder = ContextBuilder()
         self.turn_count: int = 0
         self.turns_since_checkpoint: int = 0
@@ -62,7 +64,7 @@ class ReZeroSession:
         )
         echidna_time = time.time() - t0
 
-        if decision.action == "checkpoint" and self.use_llm:
+        if decision.action == "checkpoint" and self.echidna_mode in ("llm", "clf"):
             history_tokens = count_tokens(" ".join(m["content"] for m in self.history))
             if self.turns_since_checkpoint < CHECKPOINT_COOLDOWN:
                 if self.verbose:
