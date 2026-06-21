@@ -15,3 +15,12 @@ logs/*.pid
 
 # matplotlib font cache etc
 .cache/
+logs/
+.agents/
+skills-lock.json
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+templateArxiv.pdf

@@ -575,14 +575,16 @@ Turns & total tok & F1 & total tok & F1 \\
 6  & 5{,}563  & 0.585 & \textbf{2{,}166} & 0.508 \\
 10 & 9{,}338  & 0.558 & \textbf{3{,}499} & 0.555 \\
 15 & 14{,}163 & 0.622 & \textbf{5{,}202} & \textbf{0.657} \\
+20 & 19{,}042 & 0.615 & \textbf{6{,}886} & 0.511 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 This both cuts cost and \emph{moves the crossover}. With the cheap trigger, RbD-Compress's
 total token cost drops below the uncached naive baseline \emph{immediately} (at 6 turns:
-2{,}166 vs 2{,}960), and the gap widens fast: by 10 turns it is less than half (3{,}499 vs
-7{,}700) and by 15 turns it is roughly one third (5{,}202 vs 16{,}533), because rule-trigger
+2{,}166 vs 2{,}960), and the gap widens monotonically: $2.2\times$ cheaper at 10 turns
+(3{,}499 vs 7{,}700), $3.2\times$ at 15 (5{,}202 vs 16{,}533), and $4.2\times$ at 20 turns
+(6{,}886 vs 28{,}838), because rule-trigger
 overhead grows roughly linearly while uncached naive cost grows super-linearly
 (Figure~\ref{fig:crossover}). The LLM-Echidna variant, by contrast, is so expensive per turn
 that it is eventually dominated by the \emph{naive} growing-history agent (its grey line crosses
@@ -591,15 +593,16 @@ not just unnecessary but counterproductive. The earlier honest caveat still hold
 \emph{KV/prefix-cached} naive deployment (whose relevant cost is the $\sim$140-token-per-turn
 final prompt), RbD-Compress does not win on raw tokens at any horizon --- caching is the
 equalizer, and the genuine wins remain the context-window-bound and expensive-solver regimes.
-The answer-quality columns are within the $n=20$ noise band of Section~\ref{sec:audits}
-(no CI); we read the rule trigger as quality-neutral.
+The answer-quality columns sit within the $n=20$ noise band of Section~\ref{sec:audits}
+(no CI; the rule trigger's F1 ranges from slightly above the LLM trigger at $T=15$ to below it
+at $T=20$); we read it as quality-neutral.
 
 \begin{figure}[!t]
   \centering
   \includegraphics[width=0.92\linewidth]{media/crossover.png}
   \caption{Total tokens (context $+$ compression overhead) vs.\ conversation length
-  ($T=6,10,15$). With the free rule-based Echidna (blue), RbD-Compress falls below the uncached
-  naive agent (red) by 6 turns and the gap widens to $\sim$$3\times$ by 15 turns; the
+  ($T=6,10,15,20$). With the free rule-based Echidna (blue), RbD-Compress falls below the uncached
+  naive agent (red) by 6 turns and the gap widens to $\sim$$4\times$ by 20 turns; the
   LLM-Echidna variant (grey) is so costly it is itself overtaken by uncached naive near
   $T\approx 11$. A KV/prefix-cached naive deployment (dashed) stays lowest --- caching is the
   equalizer we do not beat on raw tokens.}
