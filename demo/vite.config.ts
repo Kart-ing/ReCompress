@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// base must match the GitHub Pages path: https://<user>.github.io/ReCompress/
-// If deploying to Vercel/Netlify (served at root) instead, set base to "/".
+// Vercel/Netlify serve at root, so base is "/".
+// (For GitHub Pages at https://<user>.github.io/ReCompress/, set base to "/ReCompress/".)
 export default defineConfig({
   plugins: [react()],
-  base: "/ReCompress/",
+  base: "/",
 });
