@@ -1,0 +1,28 @@
+{
+  "n": 20,
+  "horizons": [6, 10, 15],
+  "note": "T=6,10,15 confirmed from the run (results captured from driver logs). T=20 was launched but its slow long-horizon LLM-Echidna pass did not complete within budget; the T=6/10/15 trend is already linear-vs-superlinear and decisive. Re-run plot_crossover.py if a 4th point lands.",
+  "by_turns": {
+    "6": {
+      "naive_f1": 0.485,
+      "naive_ctx_cached": 846,
+      "naive_cum_uncached": 2960,
+      "rezero_llm":  {"f1": 0.585, "total": 5563},
+      "rezero_mock": {"f1": 0.508, "total": 2166}
+    },
+    "10": {
+      "naive_f1": 0.485,
+      "naive_ctx_cached": 1366,
+      "naive_cum_uncached": 7700,
+      "rezero_llm":  {"f1": 0.558, "total": 9338},
+      "rezero_mock": {"f1": 0.555, "total": 3499}
+    },
+    "15": {
+      "naive_f1": 0.622,
+      "naive_ctx_cached": 2048,
+      "naive_cum_uncached": 16533,
+      "rezero_llm":  {"f1": 0.622, "total": 14163},
+      "rezero_mock": {"f1": 0.657, "total": 5202}
+    }
+  }
+}

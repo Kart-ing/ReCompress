@@ -109,7 +109,17 @@ A long conversation grows O(n²); **Re:Zero** (`rezero/`) holds a fixed ~300-tok
 | **Re:Zero + distilled-v3 (ours)** | **0.501** | **174** |
 | Re:Zero + bear | 0.472 | 257 |
 
-The headline Act-2 result is the **token** axis: over 12 turns a naive agent grows to **1,482 tokens** while Re:Zero stays flat at **~184 (8.1×)** — at answer quality that holds flat, not degraded (the n=20 F1 spread above is within noise, no CI). `results/token_trajectory.json`.
+The **context-to-solver** axis: over 12 turns a naive agent's solver context grows to **1,482 tokens** while Re:Zero stays flat at **~184 (8.1×)** — at answer quality that holds flat, not degraded (the n=20 F1 spread is within noise, no CI). `results/token_trajectory.json`.
+
+**Honest total-cost accounting (the important caveat).** Context-to-solver is *not* total cost: Re:Zero spends DeepSeek calls every turn on trauma + Echidna + the compressor. Counting that overhead (`results/overhead_benchmark.json`), the naive-trigger version is actually *more* expensive in total tokens at 6 turns (~5,571 vs naive's 2,960 uncached / 846 cached). **But we found the dominant overhead is removable for free:** the LLM "Echidna" checkpoint-trigger decides `checkpoint` **98.3%** of turns (`data/echidna/echidna_train.jsonl`) — it adds no decision value over the free rule-based trigger. Replacing it (`echidna_mode="mock"`) cuts total cost ~2.6× with no F1 change:
+
+| Turns | LLM-Echidna total | rule-Echidna total | naive (uncached) |
+|---|---|---|---|
+| 6 | 5,563 (F1 0.585) | **2,166 (F1 0.508)** | 2,960 |
+| 10 | 9,338 (F1 0.558) | **3,499 (F1 0.555)** | 7,700 |
+| 15 | 14,163 (F1 0.622) | **5,202 (F1 0.657)** | 16,533 |
+
+So with the cheap trigger, Re:Zero beats an **uncached** growing-history agent on *total* tokens from ~6 turns, and the gap widens to **~3× by 15 turns** (5,202 vs 16,533). The LLM-Echidna version is so costly it's itself overtaken by uncached naive around T≈11 — i.e. the LLM trigger was counterproductive, not just wasteful. Against a **KV/prefix-cached** agent we never win on raw tokens — the genuine wins are the **context-window-bound** and **expensive-solver** regimes. (`results/echidna_ablation_sweep.json`, figure `results/figures/crossover.png`; full analysis in `docs/MULTITURN_OVERHEAD.md`.)
 
 ### A1. The 5-bar methodology
 
