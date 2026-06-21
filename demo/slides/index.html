@@ -52,6 +52,14 @@
     .cue .url { font-family: var(--mono); font-size: 1.1em; color: var(--ours); margin-top: 16px; }
     .divider { text-align:center; }
     .divider h2 { color: var(--muted); font-size: 1.1em; }
+    #fsBtn {
+      position: fixed; top: 14px; right: 14px; z-index: 60;
+      font-family: var(--mono); font-size: 13px; cursor: pointer;
+      background: rgba(22,27,39,0.9); color: var(--ours);
+      border: 1px solid var(--border); border-radius: 9px; padding: 8px 14px;
+      backdrop-filter: blur(6px); transition: all 0.15s;
+    }
+    #fsBtn:hover { border-color: var(--ours); background: var(--panel); }
   </style>
 </head>
 <body>
@@ -247,12 +255,33 @@
 
 </div></div>
 
+<!-- Fullscreen button (top-right). Hides itself once in fullscreen. -->
+<button id="fsBtn" title="Fullscreen (F)" aria-label="Toggle fullscreen">⛶ Fullscreen</button>
+
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 <script>
   Reveal.initialize({
     hash: true, slideNumber: "c/t", transition: "slide", transitionSpeed: "fast",
     width: 1280, height: 720, margin: 0.06, controls: true, progress: true,
   });
+
+  // --- Fullscreen toggle (native Fullscreen API) ---
+  var fsBtn = document.getElementById("fsBtn");
+  function inFullscreen() {
+    return document.fullscreenElement || document.webkitFullscreenElement;
+  }
+  function toggleFullscreen() {
+    var el = document.documentElement;
+    if (!inFullscreen()) {
+      (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    }
+  }
+  fsBtn.addEventListener("click", toggleFullscreen);
+  function syncBtn() { fsBtn.style.display = inFullscreen() ? "none" : "block"; }
+  document.addEventListener("fullscreenchange", syncBtn);
+  document.addEventListener("webkitfullscreenchange", syncBtn);
 </script>
 </body>
 </html>
