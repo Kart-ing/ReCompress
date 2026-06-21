@@ -3,6 +3,20 @@
 This log preserves the **full trajectory, including failures**. The point at which
 things failed — and *why* — is part of the research contribution, not noise to hide.
 
+### Experiment codenames (the five distillation runs + one dropped idea)
+
+| Codename | aka | config | verdict |
+|---|---|---|---|
+| **Spark** | v1 | 261 ex, LoRA r=16, 3 ep | ❌ wash vs bear (too little data) |
+| **Bonfire** | v2 | 2,500 ex, r=64, 6 ep | ❌ overfit (eval loss rose after epoch 2) |
+| **Hearth** ⭐ | v3 | 5,000 ex, r=32, dropout 0.1, weight-decay, early-stop | ✅ **the shipped model** (+0.252 F1 HotpotQA) |
+| **Oracle** | v4 | answer-grounded, best-of-4 by solver F1 | ❌ lost to Hearth (judge-selection bias) |
+| **Oracle-Lite** | v5 | answer-grounded, greedy (no best-of-N) | ❌ also lost (not a best-of-N artifact) |
+| **Bear-Booster** | — | train so `bear(model(x))` improves | ❌ dropped: dominated by standalone |
+
+(The sections below were written using the v1–v5 labels; the codenames above are the
+reader-facing names used in the README and Devpost.)
+
 ---
 
 ## Headline numbers so far

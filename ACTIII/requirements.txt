@@ -1,0 +1,6 @@
+openai>=1.0.0
+python-dotenv
+datasets
+rouge-score
+the-token-company
+pytest
