@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from engine.compressor import compress
+from engine.compressor_backend import compress_backend
 from engine.tokens import count_tokens
 
 CHECKPOINT_CAP = 150
@@ -55,10 +56,12 @@ class CheckpointStack:
 
 
 class CheckpointBuilder:
-    def __init__(self, goal: str, ratio: float = 0.20, use_llm: bool = True):
+    def __init__(self, goal: str, ratio: float = 0.20, use_llm: bool = True,
+                 backend: str = "deepseek"):
         self.goal = goal
         self.ratio = ratio
         self.use_llm = use_llm
+        self.backend = backend   # deepseek | naive | distilled | bear
 
     def build(self, history: list[dict], trauma: str) -> str:
         if not history:
@@ -68,7 +71,10 @@ class CheckpointBuilder:
         )
         history_tokens = count_tokens(full_text)
         effective_ratio = min(self.ratio, CHECKPOINT_CAP / max(1, history_tokens))
-        compressed = compress(full_text, question=self.goal, ratio=effective_ratio, use_llm=self.use_llm, exclude=trauma)
+        compressed = compress_backend(
+            full_text, question=self.goal, ratio=effective_ratio,
+            use_llm=self.use_llm, exclude=trauma, backend=self.backend,
+        )
         return self._enforce_cap(compressed)
 
     def _enforce_cap(self, text: str) -> str:

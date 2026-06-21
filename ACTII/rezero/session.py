@@ -13,14 +13,16 @@ CHECKPOINT_COOLDOWN = 2
 MIN_HISTORY_FOR_CHECKPOINT = 400
 
 class ReZeroSession:
-    def __init__(self, goal: str, use_llm: bool = False, ratio: float = 0.20, verbose: bool = False):
+    def __init__(self, goal: str, use_llm: bool = False, ratio: float = 0.20, verbose: bool = False,
+                 backend: str = "deepseek"):
         self.goal = goal
         self.use_llm = use_llm
         self.ratio = ratio
         self.verbose = verbose
+        self.backend = backend   # compressor backend: deepseek | naive | distilled | bear
         self.history: list[dict] = []
         self.trauma_extractor = TraumaExtractor(goal=goal, use_llm=use_llm, verbose=verbose)
-        self.checkpoint_builder = CheckpointBuilder(goal=goal, ratio=ratio, use_llm=use_llm)
+        self.checkpoint_builder = CheckpointBuilder(goal=goal, ratio=ratio, use_llm=use_llm, backend=backend)
         self.checkpoint_stack = CheckpointStack()
         self.echidna = Echidna(use_llm=use_llm, verbose=verbose)
         self.context_builder = ContextBuilder()
