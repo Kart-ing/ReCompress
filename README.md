@@ -24,6 +24,67 @@ ReCompress is one research project in **two acts**:
 
 ---
 
+
+## Architecture
+
+### Act 1 — single-shot query-aware compression
+
+```mermaid
+flowchart TD
+    A[HotpotQA context + question] --> B[DeepSeek teacher\nquery-aware compress]
+    B --> C[5,000 training pairs\nfiltered for answer leakage]
+    C --> D[LoRA fine-tune\nQwen2.5-1.5B on Modal H100]
+    D --> E[Distilled student\n1.5B offline model]
+    A --> F[bear-1.1\nblind deletion baseline]
+    E --> G[Frozen DeepSeek solver]
+    F --> G
+    G --> H[QA-F1 vs ground truth]
+
+    style E fill:#E1F5EE,stroke:#0F6E56,color:#085041
+    style F fill:#FCEBEB,stroke:#A32D2D,color:#791F1F
+    style H fill:#E6F1FB,stroke:#185FA5,color:#0C447C
+```
+
+### Act 2 — RbD-Compress multi-turn memory
+
+```mermaid
+flowchart TD
+    U[User message] --> TE[Trauma extractor\nscans for critical facts]
+    TE -->|updates| TM[(Trauma memory\n~50 tok protected)]
+    TE --> E[Echidna trigger\nreads trauma first]
+    TM --> E
+
+    E -->|checkpoint| CP[Checkpoint builder\ndistilled 1.5B compressor]
+    E -->|revert| CS
+    E -->|pass| CB
+
+    CP --> CS[(Checkpoint stack\nversioned history)]
+    CS --> CB[Context builder]
+    TM --> CB
+    U --> CB
+
+    CB --> S[Solver\nfrozen DeepSeek]
+    S --> R[Answer]
+
+    style TM fill:#FAECE7,stroke:#993C1D,color:#712B13
+    style CS fill:#E1F5EE,stroke:#0F6E56,color:#085041
+    style E fill:#EEEDFE,stroke:#534AB7,color:#3C3489
+    style CB fill:#E6F1FB,stroke:#185FA5,color:#0C447C
+```
+
+### Distillation trajectory
+
+```mermaid
+flowchart LR
+    V1[v1\n261 examples\nrank 16] -->|underfitting\nno significant gain| V2
+    V2[v2\n2500 examples\nrank 64\n6 epochs] -->|overfit\nloss rises epoch 3+| V3
+    V3[v3\n5000 examples\nrank 32\n3 epochs + regularization]
+
+    style V1 fill:#FCEBEB,stroke:#A32D2D,color:#791F1F
+    style V2 fill:#FAEEDA,stroke:#854F0B,color:#633806
+    style V3 fill:#E1F5EE,stroke:#0F6E56,color:#085041
+```
+
 ## What we built
 
 - **A distilled 1.5B query-aware compressor** (`recompress/`) — DeepSeek teacher → Qwen2.5-1.5B + LoRA on a Modal H100, ~$10 total. Runs offline.
