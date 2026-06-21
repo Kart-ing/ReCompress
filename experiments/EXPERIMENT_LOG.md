@@ -274,3 +274,36 @@ answer-grounded models — a reminder to judge generalization on OOD data, not t
 
 **Decision:** v3 remains the submission model. v4+v5 are a documented negative result.
 The novelty contribution is #3 (the deletion ceiling), not answer-grounding.
+
+---
+
+## MS MARCO test — scoping the claim: where query-aware compression does NOT help
+
+Motivation: HotpotQA/2Wiki/SQuAD have short entity-span answers, so per-instance QA-F1 is
+~92% binary (0 or 1). We tested MS MARCO v2.1, whose gold answers are LONG free-form sentences
+(6-30 words), to (a) see genuinely continuous F1 and (b) check if the win generalizes to
+abstractive QA. (Evaluated v5 as the on-volume model; v3/v4≈v5 for this directional check.)
+
+**Result (n=50, ratio=0.3):**
+
+| Model | mean F1 | partial (continuous) scores |
+|---|---|---|
+| full context | 0.254 | 34/50 |
+| bear | 0.202 | 27/50 |
+| v5 (ours) | 0.204 | 28/50 |
+
+Δ v5 vs bear = **+0.002 (n.s.)** — a dead tie. And full context itself only scores 0.254.
+
+**Two findings:**
+1. **F1 is genuinely continuous here** — 28/50 partial scores spread across 0.06…0.86, vs
+   ~4/50 partial on the entity-span benchmarks. Confirms the short-answer benchmarks are
+   near-binary by nature of the metric+answers, not a bug.
+2. **Query-aware compression does NOT beat bear on abstractive QA.** On multi-hop factoid QA
+   we win by dropping distractors so the answer *entity* survives. On MS MARCO the bottleneck
+   is *composing* a free-form answer, which compression doesn't address — and the low ceiling
+   (full ctx = 0.25, token-F1 vs paraphrased gold) leaves little room for any compressor.
+
+**Scoping the headline claim (this strengthens it):** ReCompress's win is specific to
+**multi-hop, distractor-heavy, entity-answer QA** — exactly the regime bear's blind deletion
+cedes. It is NOT a universal compression win; on abstractive free-form QA it matches bear.
+Honest scoping makes the significant HotpotQA/2Wiki wins more credible.
