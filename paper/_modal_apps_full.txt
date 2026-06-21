@@ -1,0 +1,17 @@
+                                            Apps                                
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━┳━━━
+┃ App ID                    ┃ Description  ┃ State   ┃ Tasks ┃ Created at   ┃ St
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━╇━━━
+│ ap-ZY2FyklDjPhk0uMHXISM95 │ recompress-… │ stopped │ 0     │ 2026-06-21   │ 20
+│                           │              │         │       │ 02:08 PDT    │ 02
+│ ap-oonSAzFNceeeINzqhQL5F9 │ recompress-… │ stopped │ 0     │ 2026-06-21   │ 20
+│                           │              │         │       │ 01:38 PDT    │ 01
+│ ap-aeuxOkX06gRrivsVOydFm1 │ recompress-… │ stopped │ 0     │ 2026-06-21   │ 20
+│                           │              │         │       │ 01:13 PDT    │ 01
+│ ap-Cjs9XENYNN3I4WwOSaxuJA │ recompress-… │ stopped │ 0     │ 2026-06-21   │ 20
+│                           │              │         │       │ 01:11 PDT    │ 01
+│ ap-KMTqNa6ibgZd1NOuhFhKmp │ recompress-… │ stopped │ 0     │ 2026-06-21   │ 20
+│                           │              │         │       │ 01:07 PDT    │ 01
+│ ap-FHTyIx7D4zXEALZMbVENp5 │ recompress-… │ stopped │ 0     │ 2026-06-21   │ 20
+│                           │              │         │       │ 00:22 PDT    │ 00
+└───────────────────────────┴──────────────┴─────────┴───────┴──────────────┴───

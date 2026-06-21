@@ -1,0 +1,50 @@
+[
+  {
+    "app_id": "ap-ZY2FyklDjPhk0uMHXISM95",
+    "description": "recompress-distill-infer",
+    "state": "stopped",
+    "tasks": "0",
+    "created_at": "2026-06-21 02:08:08-07:00",
+    "stopped_at": "2026-06-21 02:10:44-07:00"
+  },
+  {
+    "app_id": "ap-oonSAzFNceeeINzqhQL5F9",
+    "description": "recompress-distill-infer",
+    "state": "stopped",
+    "tasks": "0",
+    "created_at": "2026-06-21 01:38:36-07:00",
+    "stopped_at": "2026-06-21 01:40:30-07:00"
+  },
+  {
+    "app_id": "ap-aeuxOkX06gRrivsVOydFm1",
+    "description": "recompress-distill-infer",
+    "state": "stopped",
+    "tasks": "0",
+    "created_at": "2026-06-21 01:13:48-07:00",
+    "stopped_at": "2026-06-21 01:37:45-07:00"
+  },
+  {
+    "app_id": "ap-Cjs9XENYNN3I4WwOSaxuJA",
+    "description": "recompress-distill-infer",
+    "state": "stopped",
+    "tasks": "0",
+    "created_at": "2026-06-21 01:11:14-07:00",
+    "stopped_at": "2026-06-21 01:11:16-07:00"
+  },
+  {
+    "app_id": "ap-KMTqNa6ibgZd1NOuhFhKmp",
+    "description": "recompress-distill-infer",
+    "state": "stopped",
+    "tasks": "0",
+    "created_at": "2026-06-21 01:07:22-07:00",
+    "stopped_at": "2026-06-21 01:08:12-07:00"
+  },
+  {
+    "app_id": "ap-FHTyIx7D4zXEALZMbVENp5",
+    "description": "recompress-distill",
+    "state": "stopped",
+    "tasks": "0",
+    "created_at": "2026-06-21 00:22:34-07:00",
+    "stopped_at": "2026-06-21 00:47:08-07:00"
+  }
+]
