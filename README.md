@@ -39,7 +39,7 @@ Distilled **Qwen2.5-1.5B + LoRA** ("ours") vs **bear-1.1** ("bear"), at a **matc
 
 ## 1b. Act 2 — Re:Zero multi-turn memory (the compressor, applied to conversations)
 
-Single-shot compression shrinks *one* prompt. But a long **conversation** has the opposite problem: context grows every turn, so cost scales O(n²). **Re:Zero** (Act 2, in `ACTII/`) is a multi-turn memory that holds a **fixed ~300-token budget** — protected facts ("trauma") + a compressed checkpoint of older turns + the recent raw delta — so context stays flat no matter how long the chat runs. The catch: *something* has to compress the checkpoints. **We use the Act 1 distilled model.**
+Single-shot compression shrinks *one* prompt. But a long **conversation** has the opposite problem: context grows every turn, so cost scales O(n²). **Re:Zero** (Act 2, in `rezero/`) is a multi-turn memory that holds a **fixed ~300-token budget** — protected facts ("trauma") + a compressed checkpoint of older turns + the recent raw delta — so context stays flat no matter how long the chat runs. The catch: *something* has to compress the checkpoints. **We use the Act 1 distilled model.**
 
 Combined benchmark (multi-turn HotpotQA, 6 turns, n=20; final-answer QA-F1 + context size at the last turn):
 
@@ -52,7 +52,7 @@ Combined benchmark (multi-turn HotpotQA, 6 turns, n=20; final-answer QA-F1 + con
 
 **Re:Zero powered by our distilled compressor wins on *both* axes** — the highest answer quality (0.501, beating even the full-history naive agent) at the *fewest* tokens (174). And per-turn, the gap compounds:
 
-> Over 12 turns, a **naive agent grows to 1,482 context tokens** while **Re:Zero stays flat at ~184 — 8.1× less, and diverging.** (`ACTII/results/token_trajectory.json`, figure `eval/figures/token_trajectory_line.png`.)
+> Over 12 turns, a **naive agent grows to 1,482 context tokens** while **Re:Zero stays flat at ~184 — 8.1× less, and diverging.** (`results/token_trajectory.json`, figure `results/figures/token_trajectory_line.png`.)
 
 This is the unifying result: the same 1.5B query-aware compressor that beats bear on single prompts (Act 1) also beats DeepSeek *and* bear as a conversational-memory engine (Act 2) — offline, at a fraction of the tokens.
 
