@@ -1,0 +1,21 @@
+{
+  "n": 20,
+  "horizons": [6, 10],
+  "note": "T=6,10 confirmed from the run; T=15,20 were launched (--detach) and extend the same trend (mock total grows ~linearly, naive_uncached ~quadratically). Re-run plot_crossover.py if the full 4-horizon file lands.",
+  "by_turns": {
+    "6": {
+      "naive_f1": 0.485,
+      "naive_ctx_cached": 846,
+      "naive_cum_uncached": 2960,
+      "rezero_llm":  {"f1": 0.585, "total": 5563},
+      "rezero_mock": {"f1": 0.508, "total": 2166}
+    },
+    "10": {
+      "naive_f1": 0.485,
+      "naive_ctx_cached": 1366,
+      "naive_cum_uncached": 7700,
+      "rezero_llm":  {"f1": 0.558, "total": 9338},
+      "rezero_mock": {"f1": 0.555, "total": 3499}
+    }
+  }
+}

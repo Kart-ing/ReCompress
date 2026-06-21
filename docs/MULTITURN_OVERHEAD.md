@@ -1,11 +1,15 @@
 # Why the multi-turn overhead is huge — and does it amortize at scale?
 
-> Written for Parth, who's going to try to fix this. TL;DR: the overhead is real,
-> it comes almost entirely from **trauma + Echidna running an LLM call every turn on
-> re-read inputs**, it's roughly **constant per turn** (so it does NOT blow up with
-> conversation length), and because naive context grows *linearly* there is a real
-> **crossover horizon** past which RbD-Compress wins on total tokens — we just measured
-> below it. The fix is to make the per-turn machinery cheaper or less frequent.
+> **UPDATE (measured): we fixed a big chunk of it.** The Echidna LLM call turned out to be
+> ~useless — it says "checkpoint" 98% of the time — so we replaced it with the free rule-based
+> trigger. That alone cuts total cost ~2.6× (5,563 → 2,166 tokens at 6 turns) with no F1 change,
+> and it moves the crossover-vs-uncached-naive to **T≈6 (immediate)** instead of the ~15 we
+> projected. Details + the remaining overhead (trauma) below.
+>
+> Original TL;DR (still true): the overhead comes almost entirely from **trauma + Echidna
+> running an LLM call every turn on re-read inputs**, it's roughly **constant per turn** (so it
+> does NOT blow up with conversation length), and because naive context grows super-linearly
+> there is a real **crossover horizon** past which RbD-Compress wins on total tokens.
 
 ## 1. The measurement that started this
 
@@ -67,9 +71,55 @@ Breakdown per 6-turn conversation (approx):
 - `MIN_MAX_TOKENS=1024` in `deepseek.py` floors the request — if the API bills on requested
   max in any tier, that inflates cost further (worth checking).
 
+## 2.5 The fix we landed: Echidna's LLM call is unnecessary (MEASURED)
+
+We generated 954 real Echidna decisions (`data/echidna/echidna_train.jsonl`, 120 conversations,
+LLM Echidna deciding). The result:
+
+> **The LLM Echidna decides `checkpoint` on 938 / 954 = 98.3% of turns.** It is not making a
+> meaningful decision — and the feature distributions for its rare `pass` cases overlap
+> completely with its `checkpoint` cases, so there is nothing to learn. The *effective*
+> checkpoint cadence is set entirely by the free guardrails in `session.py`
+> (`CHECKPOINT_COOLDOWN=2`, `MIN_HISTORY_FOR_CHECKPOINT=400`), not by the LLM.
+
+So instead of training a classifier to imitate a 98%-one-class signal (pointless), we replaced
+the LLM Echidna with the **free rule-based trigger** (`echidna_mode="mock"`, already in the
+codebase). We measured both on the same instances (`results/echidna_ablation_sweep.json`,
+`rezero/experiments/echidna_ablation_sweep.py`):
+
+| Turns | LLM-Echidna total tok | LLM F1 | **rule-Echidna total tok** | **rule F1** | tokens saved |
+|---|---|---|---|---|---|
+| 6  | 5,563 | 0.585 | **2,166** | 0.508 | **2.6×** |
+| 10 | 9,338 | 0.558 | **3,499** | 0.555 | **2.7×** |
+
+**The rule matches the LLM's answer quality** (T=10: 0.555 vs 0.558, identical within the n=20
+noise band; the T=6 gap 0.508 vs 0.585 is also within that band — see §4.2 of the paper on n=20
+variance) **at ~2.6× lower total tokens.** Removing the Echidna LLM call deletes ~3,400 tok/convo
+at 6 turns. This is implemented and wired (`rezero/rezero/echidna.py::_clf_decide` exists as a
+learned-classifier bonus, but `mock` is the honest winner and the default we recommend).
+
+> Bottom line: **the single biggest overhead component — the per-turn Echidna LLM call — was
+> providing ~no value and is now gone.** What remains is the trauma extractor (§4), the next target.
+
 ## 3. Does it get better at larger sizes? (the important question)
 
-**Yes — but not because overhead shrinks. Because naive grows and overhead doesn't.**
+**Yes — and now MEASURED, not projected.** With the cheap rule-Echidna, the crossover is dramatic.
+
+From `results/echidna_ablation_sweep.json` (figure: `media/crossover.png`):
+
+| Turns | naive (cached) | naive (uncached) | RbD-Compress + rule (total) |
+|---|---|---|---|
+| 6  | 846   | 2,960 | **2,166**  ← already beats uncached naive |
+| 10 | 1,366 | 7,700 | **3,499**  ← gap widening fast |
+
+**Crossover vs *uncached* naive happens at T≈6 (immediately)** once Echidna is cheap — not the
+~15 we projected with the LLM Echidna. By T=10, RbD-Compress (3,499) is less than **half** the
+uncached naive cost (7,700), and the gap widens because rule-overhead grows ~linearly while
+uncached naive grows super-linearly. **Against a KV/prefix-cached naive deployment (846→1,366,
+slope ~140/turn) we still never win on raw tokens** — caching is the great equalizer, and that
+honest caveat stands.
+
+### Why (the slopes, now with real fits)
 
 Two regimes to separate:
 
@@ -104,13 +154,16 @@ Naive depends entirely on **caching**:
 
 ## 4. What Parth could try (ordered by expected impact)
 
+2. ~~**Make Echidna a classifier, not an LLM call.**~~ ✅ **DONE — see §2.5.** Replaced the LLM
+   Echidna with the free rule trigger (`echidna_mode="mock"`); removed ~3,400 tok/convo at 6
+   turns, no F1 change, crossover-vs-uncached now immediate. The LLM was 98% "checkpoint" — no
+   decision value. (A learned classifier `_clf_decide` is wired too, but the rule is the winner.)
+
+**Remaining (Parth's turn) — ordered by expected impact:**
+
 1. **Stop running trauma twice per turn.** Update on the user message only, or batch
-   user+assistant into one call. Expected: ~halve the trauma share → ~−1,700 tok/convo.
-2. **Make Echidna a classifier, not an LLM call.** Echidna's job is a 3-way decision
-   (checkpoint / revert / pass). A cheap heuristic or a tiny fine-tuned classifier (or even
-   the existing token-threshold mock) removes ~1,900 tok/convo entirely. This is the cleanest
-   structural fix — the paper already lists "replace Echidna's LLM call with a fine-tuned
-   classifier" as future work.
+   user+assistant into one call. Now the *largest* remaining component (Echidna is gone).
+   Expected: ~halve the trauma share → ~−1,700 tok/convo.
 3. **Trim the system prompts.** Three ~150-token system prompts re-sent every turn is most of
    the fixed cost. Shorten them, or move stable instructions into a cached prefix.
 4. **Run trauma/Echidna on the distilled 1.5B (or a smaller model), not DeepSeek.** This is the

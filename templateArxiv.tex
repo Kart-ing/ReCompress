@@ -548,6 +548,59 @@ RbD-Compress + bear           & 0.411 & 255  & 5{,}387 & 5{,}641 \\
 \end{tabular}
 \end{table}
 
+\subsection{Reducing the overhead: the Echidna trigger is unnecessary}
+\label{sec:echidna-ablation}
+
+The overhead above is dominated by per-turn DeepSeek calls. We profiled where they go and
+found a striking result. We logged 954 real Echidna decisions over 120 conversations: the
+LLM Echidna returns \texttt{checkpoint} on \textbf{98.3\%} of turns. It is effectively not
+deciding --- the per-turn checkpoint cadence is set by the cheap cooldown / minimum-history
+guardrails, not by the model --- and the cheap-feature distributions of its rare
+\texttt{pass} turns overlap entirely with its \texttt{checkpoint} turns, so there is no
+learnable signal. Rather than distill a classifier toward a 98\%-one-class target, we simply
+replace the LLM trigger with the free rule-based trigger (a token threshold plus turn cadence,
+gated by the same guardrails) and measure the effect
+(Table~\ref{tab:echidna}, Figure~\ref{fig:crossover}).
+
+\begin{table}[t]
+\caption{Removing the LLM Echidna (HotpotQA, distilled backend, $n=20$). The free rule-based
+trigger matches the LLM trigger's answer quality at $\sim$$2.6\times$ lower total token cost,
+because the per-turn Echidna LLM call (which was $\sim$98\% ``checkpoint'' anyway) is gone.}
+\label{tab:echidna}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{LLM Echidna} & \multicolumn{2}{c}{Rule Echidna (free)} \\
+Turns & total tok & F1 & total tok & F1 \\
+\midrule
+6  & 5{,}563 & 0.585 & \textbf{2{,}166} & 0.508 \\
+10 & 9{,}338 & 0.558 & \textbf{3{,}499} & 0.555 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This both cuts cost and \emph{moves the crossover}. With the cheap trigger, RbD-Compress's
+total token cost drops below the uncached naive baseline \emph{immediately} (at 6 turns:
+2{,}166 vs 2{,}960), and by 10 turns it is less than half (3{,}499 vs 7{,}700), the gap
+widening because rule-trigger overhead grows roughly linearly while uncached naive cost grows
+super-linearly (Figure~\ref{fig:crossover}). The earlier honest caveat still holds: against a
+\emph{KV/prefix-cached} naive deployment (whose relevant cost is the $\sim$140-token-per-turn
+final prompt), RbD-Compress does not win on raw tokens at any horizon --- caching is the
+equalizer, and the genuine wins remain the context-window-bound and expensive-solver regimes.
+Note the answer-quality columns are within the $n=20$ noise band of Section~\ref{sec:audits}
+(no CI); we read the rule trigger as quality-neutral, not better or worse.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.92\linewidth]{media/crossover.png}
+  \caption{Total tokens (context $+$ compression overhead) vs.\ conversation length. With the
+  free rule-based Echidna (blue), RbD-Compress falls below the uncached naive agent (red) by 6
+  turns and the gap widens; the LLM-Echidna variant (grey) is dominated. A KV/prefix-cached
+  naive deployment (dashed) stays lowest --- caching is the equalizer we do not beat on raw
+  tokens. Measured at $T=6,10$; the slopes extrapolate the trend.}
+  \label{fig:crossover}
+\end{figure}
+
 \subsection{Protected Buffer Ablation}
 
 We compare Variant A (trauma + checkpoint + delta) against Variant B (a single
@@ -724,12 +777,15 @@ while emitting far fewer tokens than deletion, and that this capability
 distills into a 1.5B model that transfers to a near-in-distribution benchmark
 (directionally, but not yet significantly, to more dissimilar ones). The
 multi-turn component demonstrates that explicit protection of critical facts
-through tiered memory keeps solver context flat at no measurable accuracy cost;
-we report honestly that, once per-turn compression overhead is counted, this is
-a win only when the context window (not total token spend) is the binding
-constraint, or when the solver is far more expensive than the compressor. The
-flat-context property and the protected-buffer mechanism are the contributions;
-a total-token win at realistic horizons remains future work.
+through tiered memory keeps solver context flat at no measurable accuracy cost.
+We report the cost honestly: counting per-turn compression overhead, the naive
+LLM-trigger version is more expensive in total tokens at short horizons. But we
+also show the dominant overhead --- a per-turn Echidna LLM call that was
+$\sim$98\% ``checkpoint'' anyway --- is removable for free, after which
+RbD-Compress beats an \emph{uncached} growing-history agent on total tokens from
+$\sim$6 turns onward (Section~\ref{sec:echidna-ablation}); against a
+\emph{cached} deployment, flat context wins only when the context window is the
+binding constraint or the solver dominates compression cost.
 
 Query-aware rewriting and deletion-based compression serve complementary
 operating regimes. Rewriting is best suited to tasks where query
