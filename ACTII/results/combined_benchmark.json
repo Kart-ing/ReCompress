@@ -1,0 +1,26 @@
+{
+  "n": 20,
+  "max_turns": 6,
+  "results": {
+    "naive": {
+      "mean_f1": 0.4849404761904762,
+      "mean_tokens": 845.5,
+      "n": 20
+    },
+    "rezero_deepseek": {
+      "mean_f1": 0.45463383838383836,
+      "mean_tokens": 198.4,
+      "n": 20
+    },
+    "rezero_distilled": {
+      "mean_f1": 0.5010515873015873,
+      "mean_tokens": 174.5,
+      "n": 20
+    },
+    "rezero_bear": {
+      "mean_f1": 0.4723691103582408,
+      "mean_tokens": 256.6,
+      "n": 20
+    }
+  }
+}
