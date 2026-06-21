@@ -15,8 +15,11 @@
 
 \pagestyle{fancy}
 \thispagestyle{empty}
-\rhead{\textit{}}
-\fancyhead[LO]{ReCompress: Query-Aware Rewriting and Multi-Turn Compression}
+\fancyhf{}                       % clear ALL header/footer slots (kills the citation bleed)
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[C]{\itshape ReCompress: Query-Aware Rewriting and Tiered Memory}
+\fancyfoot[C]{\thepage}
+\setlength{\headheight}{15pt}    % enough for the single short running-title line
 
 \title{ReCompress: Query-Aware Rewriting and Tiered Memory\\for Efficient LLM Context Compression
 \thanks{\textit{\underline{Citation}}:
