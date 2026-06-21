@@ -205,3 +205,37 @@ pre-processing. Query-aware rewriting must REPLACE deletion, not augment it.* Th
 why the standalone query-aware model is the right architecture — and why bear's deletion-only
 design has a ceiling that no front-end can lift. The bear-improver script is retained as the
 evidence for this claim; it was not trained at scale (no compute spent beyond the smoke test).
+
+---
+
+## v4 — Answer-grounded distillation (best-of-N). NEGATIVE result: did NOT beat v3.
+
+**Idea:** instead of distilling the teacher's text (v3), distill compressions selected by
+*downstream answer success* — generate 4 candidates per example (1 greedy + 3 at temp 0.7),
+run the frozen solver on each, keep the one with highest answer-F1 (best-of-4). Data: 4363
+survivors (87.3% keep-rate), avg answer-F1 of kept = 0.934. Trained with the SAME config as
+v3 (r=32, 3 epochs, batch 64, dropout 0.1) so the only variable is the data/objective.
+
+**Result — v4 lost to v3 on both significant benchmarks:**
+
+| Benchmark | bear | v3 (teacher-imitate) | v4 (answer-grounded best-of-4) | v4 − v3 |
+|---|---|---|---|---|
+| HotpotQA | 0.452 | **0.704** (sig) | 0.659 (sig) | −0.045 |
+| 2Wiki | 0.390 | **0.570** (sig) | 0.520 (**n.s.**) | −0.050 |
+
+v4 still beats bear, but is ~0.05 F1 *worse* than v3 and loses significance on 2Wiki.
+Per the "merge only if it wins" rule, **v4 was not merged; v3 remains the model.**
+
+**Why (hypotheses):**
+1. **Judge-selection bias (most likely).** Best-of-N picks the candidate the *frozen solver*
+   scores highest — which selects for that solver's quirks, not generalizable compression
+   quality. The student then distills judge-pleasing artifacts. A mild reward-hacking effect.
+2. **Less + easier data.** The survival filter dropped ~13% of examples — disproportionately
+   the *hard* ones the model most needs to learn from.
+3. **Greedy teacher was already strong.** Temp-0.7 diversity added more noise than signal;
+   best-of-N had little headroom to improve the target, only room to add variance.
+
+**The finding itself:** *answer-grounded best-of-N selection against a frozen judge does not
+beat plain teacher-imitation for compression distillation* — a non-obvious result worth
+recording (most teams wouldn't test it). Motivates v5: keep answer-grounding's data-quality
+benefit but REMOVE the best-of-N judge-selection (greedy-only + drop teacher-failures).
