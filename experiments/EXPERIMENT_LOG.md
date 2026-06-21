@@ -169,3 +169,39 @@ not just epochs.
 - Batch **eff. 64** (per_device 32 × accum 2) → ~211 steps → ~12-15 min on H100, detached
 
 (v3 numbers appended once the run completes.)
+
+---
+
+## Bear-improver experiment — DROPPED (dominated by standalone). A useful negative result.
+
+**Original thesis (Act-1 v0):** don't replace bear — train an SLM *adapter* that rewrites
+text so bear's *blind deletion* yields a BETTER final answer. I.e. optimize `bear(SLM(text))`,
+not `SLM(text)` alone. Code: `src/distill/gen_data_bearimprover.py` (deletion-robust teacher
+prompt + a survival filter: run bear on each rewrite, keep only rewrites whose answer survives
+bear with post-bear F1 ≥ 0.5). Smoke test (6 instances) worked: **83% keep-rate, avg post-bear
+F1 of survivors = 0.933** — DeepSeek *can* write bear-survivable text.
+
+**Why we dropped it before spending the full training compute — the dominance argument:**
+A pre-processor in front of bear is *strictly more expensive and slower* than bear alone
+(it adds SLM generation). So it can only justify itself on **final quality**. But our own
+5-bar numbers show that if you have the SLM at all, using it **standalone** beats routing it
+through bear, on every benchmark:
+
+| Benchmark | bear alone | standalone ours (v3) | ours→bear |
+|---|---|---|---|
+| HotpotQA | 0.452 | **0.704** | 0.464 |
+| 2Wiki | 0.390 | **0.570** | 0.407 |
+| MuSiQue | 0.186 | **0.297** | 0.213 |
+| SQuAD v2 | 0.471 | **0.593** | 0.295 |
+
+`standalone ours` ≫ `ours→bear` everywhere. Bear's deletion can only *remove* information
+the SLM deliberately placed — so the best the bear-improver could do is climb toward, but
+not exceed, the standalone number, while costing an extra bear pass. It is dominated on all
+three axes (latency, cost, quality) unless you are **contractually forced to keep bear** in
+the pipeline.
+
+**The finding (and why it strengthens the main result):** *You cannot fix blind deletion by
+pre-processing. Query-aware rewriting must REPLACE deletion, not augment it.* This is exactly
+why the standalone query-aware model is the right architecture — and why bear's deletion-only
+design has a ceiling that no front-end can lift. The bear-improver script is retained as the
+evidence for this claim; it was not trained at scale (no compute spent beyond the smoke test).
