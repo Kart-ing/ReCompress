@@ -15,7 +15,7 @@ def call(
     max_tokens: int = 512,
 ) -> str:
     resp = client.chat.completions.create(
-        model="deepseek-chat",
+        model="deepseek-v4-flash",
         messages=[
             {"role": "system", "content": system},
             {"role": "user",   "content": prompt},
