@@ -220,7 +220,7 @@ The stacking failure (§4.2) points directly at the *original* thesis and the mo
 
 `ours→bear` fails because bear deletes our already-dense output and mangles it. But flip the objective: instead of training a student to *replace* bear, train a small model whose job is to **make bear's *output* better** — a query-aware post-processor that takes bear's deleted token-soup and repairs/re-densifies it for the question. That's a *different* training objective (input = bear output, target = a good compression of it), and it would be **additive and flattering** to bear rather than competitive — it extends bear into the query-aware regime instead of supplanting it. Not built yet; it's the clean next experiment.
 
-Other directions: a ratio sweep + larger n to map the significance frontier; calibrating the budget knob so the student hits a requested ratio; and an **Act 2 multi-turn** application (`prd-multiturn.md`) — a conversational memory (compressed checkpoint + protected facts + per-turn delta) so cumulative token cost stays flat instead of growing O(n²) over a long chat.
+Other directions: a ratio sweep + larger n to map the significance frontier; calibrating the budget knob so the student hits a requested ratio; and an **Act 2 multi-turn** application (`docs/PRD_act2.md`, implemented in `ACTII/`) — a conversational memory (compressed checkpoint + protected facts + per-turn delta) so cumulative token cost stays flat instead of growing O(n²) over a long chat. **Now integrated:** ReZero's checkpoint compression runs on our distilled v3 — and beats both DeepSeek and bear as the backend (see `ACTII/results/`).
 
 ---
 
@@ -248,13 +248,20 @@ ReCompress/
 │   ├── 5bar_results.json             # API teacher 5-bar (the +0.395 upper bound)
 │   ├── 5bar_distilled_{hotpotqa,2wiki,musique,squad}.json   # the distilled cross-benchmark results
 │   ├── latency_api.json
-│   └── cross_benchmark.png
+│   └── figures/                      # the full visualization gallery (13 figures)
+├── ACTII/                           # Act 2 — ReZero multi-turn memory (integrates Act 1's distilled compressor)
+│   ├── engine/compressor_backend.py # backend selector: deepseek | distilled-v3 | bear
+│   ├── experiments/combined_benchmark.py , token_trajectory.py
+│   └── results/                      # combined multi-turn benchmark + per-turn token trajectory
 ├── experiments/
-│   ├── EXPERIMENT_LOG.md             # the full v1→v2→v3 trajectory (research narrative)
+│   ├── EXPERIMENT_LOG.md             # the full v1→v2→v3 trajectory + v4/v5 negative results
 │   └── v1/ , v3/                     # archived datasets, loss curves, Modal logs
-├── token-company-prd.md             # original PRD (the thesis + prior-art review)
-├── prd-multiturn.md                 # Act 2 (multi-turn memory) PRD
-└── PROGRESS.md                      # build log
+└── docs/
+    ├── PRD_act1.md                  # original PRD (the thesis + prior-art review)
+    ├── PRD_act2.md                  # Act 2 (multi-turn memory) PRD
+    ├── PRD_integration.md           # Act1↔Act2 integration PRD
+    ├── FINDINGS_deletion_ceiling.md # the novelty: why deletion has a ceiling rewriting doesn't
+    ├── DEVPOST.md  , PROGRESS.md     # submission text + build log
 ```
 
 ### Reproduce the pipeline

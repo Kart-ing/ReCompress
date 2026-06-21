@@ -1,0 +1,65 @@
+Note that running a local entrypoint in detached mode only keeps the last triggered Modal function alive after the parent process has been killed or disconnected.
+✓ Initialized. View run at 
+https://modal.com/apps/kartikeypandey18/main/ap-oonSAzFNceeeINzqhQL5F9
+✓ Created objects.
+├── 🔨 Created mount PythonPackage:src
+└── 🔨 Created function Compressor.*.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+  turn 1/12: naive=81 | rezero_distilled=94
+  turn 2/12: naive=163 | rezero_distilled=117
+  turn 3/12: naive=258 | rezero_distilled=126
+  turn 4/12: naive=366 | rezero_distilled=133
+/usr/local/lib/python3.11/site-packages/huggingface_hub/constants.py:298: FutureWarning: The `HF_HUB_ENABLE_HF_TRANSFER` environment variable is deprecated as 'hf_transfer' is not used anymore. Please use `HF_XET_HIGH_PERFORMANCE` instead to enable high performance transfer with Xet. Visit https://huggingface.co/docs/huggingface_hub/package_reference/environment_variables#hfxethighperformance for more details.
+  warnings.warn(
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+🦥 Unsloth Zoo will now patch everything to make training faster!
+==((====))==  Unsloth 2026.6.8: Fast Qwen2 patching. Transformers: 5.5.0.
+   \\   /|    NVIDIA H100 80GB HBM3. Num GPUs = 1. Max memory: 79.179 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.10.0+cu128. CUDA: 9.0. CUDA Toolkit: 12.8. Triton: 3.6.0
+\        /    Bfloat16 = TRUE. FA [Xformers = 0.0.35. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+
+[1ALoading weights:   0%|          | 0/338 [00:00<?, ?it/s]
+[1ALoading weights:   0%|          | 1/338 [00:00<02:48,  2.00it/s]
+[1ALoading weights:   5%|▍         | 16/338 [00:00<00:10, 31.93it/s]
+[1ALoading weights:   7%|▋         | 25/338 [00:00<00:07, 43.03it/s]
+[1ALoading weights:  12%|█▏        | 40/338 [00:00<00:04, 64.52it/s]
+[1ALoading weights:  20%|██        | 69/338 [00:00<00:02, 118.25it/s]
+[1ALoading weights:  25%|██▌       | 85/338 [00:01<00:02, 112.44it/s]
+[1ALoading weights:  33%|███▎      | 112/338 [00:01<00:01, 149.25it/s]
+[1ALoading weights:  41%|████▏     | 140/338 [00:01<00:01, 181.57it/s]
+[1ALoading weights:  50%|█████     | 169/338 [00:01<00:00, 207.96it/s]
+[1ALoading weights:  58%|█████▊    | 195/338 [00:01<00:00, 211.80it/s]
+[1ALoading weights:  65%|██████▌   | 220/338 [00:01<00:00, 221.89it/s]
+[1ALoading weights:  73%|███████▎  | 248/338 [00:01<00:00, 237.34it/s]
+[1ALoading weights:  82%|████████▏ | 277/338 [00:01<00:00, 241.93it/s]
+[1ALoading weights:  89%|████████▉ | 302/338 [00:02<00:00, 206.67it/s]
+[1ALoading weights:  96%|█████████▌| 324/338 [00:02<00:00, 181.79it/s]Loading weights: 100%|██████████| 338/338 [00:02<00:00, 148.63it/s]
+unsloth/qwen2.5-1.5b-instruct-unsloth-bnb-4bit does not have a padding token! Will use pad_token = <|PAD_TOKEN|>.
+Unsloth 2026.6.8 patched 28 layers with 0 QKV layers, 0 O layers and 0 MLP layers.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Both `max_new_tokens` (=512) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/usr/local/lib/python3.11/site-packages/transformers/modeling_attn_mask_utils.py:71: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/usr/local/lib/python3.11/site-packages/transformers/modeling_attn_mask_utils.py:281: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/usr/local/lib/python3.11/site-packages/transformers/modeling_attn_mask_utils.py:71: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/usr/local/lib/python3.11/site-packages/transformers/modeling_attn_mask_utils.py:281: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+  turn 5/12: naive=521 | rezero_distilled=185
+  turn 6/12: naive=626 | rezero_distilled=185
+  turn 7/12: naive=711 | rezero_distilled=161
+Both `max_new_tokens` (=512) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  turn 8/12: naive=770 | rezero_distilled=139
+  turn 9/12: naive=834 | rezero_distilled=143
+  turn 10/12: naive=1093 | rezero_distilled=193
+Both `max_new_tokens` (=512) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+  turn 11/12: naive=1305 | rezero_distilled=175
+  turn 12/12: naive=1482 | rezero_distilled=184
+
+saved results/token_trajectory.json
+Naive grows each turn; ReZero stays flat.
+✓ App completed. View run at 
+https://modal.com/apps/kartikeypandey18/main/ap-oonSAzFNceeeINzqhQL5F9

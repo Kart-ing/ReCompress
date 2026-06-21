@@ -1,0 +1,67 @@
+Note that running a local entrypoint in detached mode only keeps the last triggered Modal function alive after the parent process has been killed or disconnected.
+✓ Initialized. View run at 
+https://modal.com/apps/kartikeypandey18/main/ap-KMTqNa6ibgZd1NOuhFhKmp
+✓ Created objects.
+├── 🔨 Created mount PythonPackage:src
+└── 🔨 Created function Compressor.*.
+=== ReZero + distilled-v3 integration smoke ===
+/usr/local/lib/python3.11/site-packages/huggingface_hub/constants.py:298: FutureWarning: The `HF_HUB_ENABLE_HF_TRANSFER` environment variable is deprecated as 'hf_transfer' is not used anymore. Please use `HF_XET_HIGH_PERFORMANCE` instead to enable high performance transfer with Xet. Visit https://huggingface.co/docs/huggingface_hub/package_reference/environment_variables#hfxethighperformance for more details.
+  warnings.warn(
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+🦥 Unsloth Zoo will now patch everything to make training faster!
+==((====))==  Unsloth 2026.6.8: Fast Qwen2 patching. Transformers: 5.5.0.
+   \\   /|    NVIDIA H100 80GB HBM3. Num GPUs = 1. Max memory: 79.179 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.10.0+cu128. CUDA: 9.0. CUDA Toolkit: 12.8. Triton: 3.6.0
+\        /    Bfloat16 = TRUE. FA [Xformers = 0.0.35. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+
+[1ALoading weights:   0%|          | 0/338 [00:00<?, ?it/s]
+[1ALoading weights:   0%|          | 1/338 [00:00<01:11,  4.74it/s]
+[1ALoading weights:   1%|▏         | 5/338 [00:00<00:20, 16.52it/s]
+[1ALoading weights:   7%|▋         | 25/338 [00:00<00:05, 61.71it/s]
+[1ALoading weights:  11%|█         | 37/338 [00:00<00:04, 69.45it/s]
+[1ALoading weights:  19%|█▉        | 64/338 [00:00<00:02, 119.53it/s]
+[1ALoading weights:  25%|██▍       | 83/338 [00:00<00:02, 113.47it/s]
+[1ALoading weights:  33%|███▎      | 113/338 [00:01<00:01, 157.67it/s]
+[1ALoading weights:  41%|████      | 137/338 [00:01<00:01, 177.94it/s]
+[1ALoading weights:  48%|████▊     | 161/338 [00:01<00:00, 192.75it/s]
+[1ALoading weights:  54%|█████▍    | 183/338 [00:01<00:00, 194.69it/s]
+[1ALoading weights:  61%|██████    | 205/338 [00:01<00:00, 198.97it/s]
+[1ALoading weights:  67%|██████▋   | 227/338 [00:01<00:00, 201.97it/s]
+[1ALoading weights:  74%|███████▍  | 251/338 [00:01<00:00, 206.99it/s]
+[1ALoading weights:  81%|████████▏ | 275/338 [00:01<00:00, 214.12it/s]
+[1ALoading weights:  88%|████████▊ | 297/338 [00:01<00:00, 177.12it/s]
+[1ALoading weights:  93%|█████████▎| 316/338 [00:02<00:00, 148.04it/s]
+[1ALoading weights: 100%|██████████| 338/338 [00:02<00:00, 151.16it/s]
+unsloth/qwen2.5-1.5b-instruct-unsloth-bnb-4bit does not have a padding token! Will use pad_token = <|PAD_TOKEN|>.
+Unsloth 2026.6.8 patched 28 layers with 0 QKV layers, 0 O layers and 0 MLP layers.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Both `max_new_tokens` (=512) and `max_length`(=32768) seem to have been set. `max_new_tokens` will take precedence. Please refer to the documentation for more information. (https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)
+/usr/local/lib/python3.11/site-packages/transformers/modeling_attn_mask_utils.py:71: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/usr/local/lib/python3.11/site-packages/transformers/modeling_attn_mask_utils.py:281: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/usr/local/lib/python3.11/site-packages/transformers/modeling_attn_mask_utils.py:71: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+/usr/local/lib/python3.11/site-packages/transformers/modeling_attn_mask_utils.py:281: FutureWarning: The attention mask API under `transformers.modeling_attn_mask_utils` (`AttentionMaskConverter`) is deprecated and will be removed in Transformers v5.10. Please use the new API in `transformers.masking_utils`.
+  warnings.warn(DEPRECATION_MESSAGE, FutureWarning)
+
+turns: 6
+checkpoints created: [0]
+context tokens (flat target <=300): 80
+backend used: distilled
+
+--- prompt_for_solver() (compressed by distilled v3) ---
+[TRAUMA]
+Plan a multi-step research project on coral reefs | We, Great Barrier Reef Understood Key Noted Also, Acropora Added Acropora The Recorded Compare Will Funding, March Flagged, March
+
+[CHECKPOINT]
+The proposed research project aims to study coral bleaching in the Great Barrier Reef from 2016 to 2020, with a focus on sea
+
+[DELTA]
+Funding deadline for the proposal is March 15th.
+
+✅ ReZero successfully compressed a checkpoint with the distilled v3 model on Modal.
+✓ App completed. View run at 
+https://modal.com/apps/kartikeypandey18/main/ap-KMTqNa6ibgZd1NOuhFhKmp
