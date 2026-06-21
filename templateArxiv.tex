@@ -48,16 +48,23 @@ entire irrelevant passages; multi-turn memory systems lack explicit protection
 for the bridging facts that multi-hop reasoning depends on. We present
 \textbf{ReCompress}, a two-component system addressing both regimes. A
 query-aware rewriting compressor, distilled into a 1.5B student
-(Qwen2.5-1.5B + LoRA), outperforms bear-1.1 by +0.252 F1 on HotpotQA and
-generalizes zero-shot to 2WikiMultiHop (+0.180 F1). A tiered multi-turn
-framework, \textbf{RbD-Compress}, keeps per-turn token cost flat through
-protected \textit{trauma memory}, a versioned \textit{checkpoint stack} with
-rollback, and \textit{Echidna}, an intelligent trigger that reads trauma
-memory before compression decisions. RbD-Compress matches naive full-context
-QA-F1 at $3\times$ lower per-turn token cost. Our results show that
-query-aware rewriting and deletion-based compression serve complementary
-operating regimes, and that explicit protection of critical facts is necessary
-for multi-hop reasoning under compression.
+(Qwen2.5-1.5B + LoRA), outperforms bear-1.1 by +0.252 F1 on HotpotQA
+\emph{while emitting roughly $8.5\times$ fewer tokens} (48 vs.\ 409 at a
+ratio-0.3 compression instruction). The gain is significant on multi-hop
+question answering with distractors (HotpotQA, and the near-in-distribution
+2WikiMultiHop, +0.180 F1) and positive-but-not-significant on more dissimilar
+tasks (MuSiQue, SQuAD) at $n=50$; we make the narrower claim the data supports.
+We further audit the result against ourselves: the gap survives an independent
+solver, and a mask-the-answer probe shows a substantial share of the margin
+comes from \emph{reliably retaining the answer-bearing span at a 3.5\% budget}
+where deletion truncates it. A tiered multi-turn framework, \textbf{RbD-Compress},
+holds the context sent to the solver flat through protected \textit{trauma
+memory}, a versioned \textit{checkpoint stack} with rollback, and
+\textit{Echidna}, an intelligent trigger that reads trauma memory before
+compression decisions, at no measurable loss in answer quality --- a flatness
+result we scope carefully against per-turn compression overhead and KV-caching
+assumptions. Our results show that query-aware rewriting and deletion-based
+compression serve complementary operating regimes.
 \end{abstract}
 
 \keywords{prompt compression \and query-aware rewriting \and multi-turn
@@ -96,9 +103,15 @@ single bridging entity connects two documents and its absence collapses
 the reasoning chain, this architectural gap is consequential.
 
 We make two contributions. First, we show that query-aware rewriting
-provides substantial gains on multi-hop question answering at matched
-token budgets, and that this capability distills into a 1.5B parameter
-student that runs offline and cheaply. Second, we introduce RbD-Compress,
+provides substantial gains on multi-hop question answering under the same
+compression instruction --- in fact while spending far fewer realized tokens
+than deletion --- and that this capability distills into a 1.5B parameter
+student that runs offline and cheaply. We are careful about the \emph{source}
+of the gain: an answer-masking audit (Section~\ref{sec:audits}) shows much of
+it comes from the rewriter reliably retaining the answer-bearing span at a
+3.5\% token budget, where deletion at a 30\% budget often truncates it ---
+i.e.\ better query-conditioned \emph{selection}, not a claim of better
+reasoning under compression. Second, we introduce RbD-Compress,
 a multi-turn context management architecture that keeps per-turn token
 cost flat through three components: trauma memory, a protected store of
 critical facts that survives all compression and revert operations; a
@@ -181,9 +194,13 @@ more densely.
 We implement a teacher-student pipeline. The teacher is a frontier
 language model (DeepSeek) prompted to compress a given context with
 respect to a given question, dropping irrelevant passages and densifying
-relevant ones. We generate 5,000 training examples from HotpotQA contexts
-paired with their questions, filtering pairs where the compressed output
-appears to leak the ground truth answer directly. The student is
+relevant ones. We retain 5,000 training pairs from HotpotQA contexts after
+applying a minimum-output-length filter that drops degenerate
+\emph{bare-answer} compressions (outputs short enough to be the answer span
+rather than compressed context). We note this filter is a length floor: it
+removes bare dumps but not answers that legitimately appear inside a retained
+supporting sentence, which is consistent with the answer-span analysis in
+Section~\ref{sec:audits}. The student is
 Qwen2.5-1.5B-Instruct \cite{qwen2025qwen25} fine-tuned with LoRA
 \cite{hu2021lora} using Unsloth on a Modal H100, with rank 32, dropout
 0.1, weight decay, and early stopping on validation loss.
@@ -349,9 +366,15 @@ SQuAD v2 (single-hop, OOD)  & 0.903 & 0.471 & 0.593          & +0.123 (n.s.)    
 \end{table}
 
 The headline result is that our query-aware rewriting approach achieves
-0.847 F1 on HotpotQA at matched token budget versus bear-1.1's 0.452,
+0.847 F1 on HotpotQA versus bear-1.1's 0.452,
 with a 95\% confidence interval that excludes zero
-(Table~\ref{tab:fivebar}). The distilled 1.5B student achieves 0.704 F1,
+(Table~\ref{tab:fivebar}). A note on the comparison: both systems receive the
+\emph{same} ratio-0.3 compression instruction, but the resulting token counts
+are not equal --- bear retains $\approx 409$ tokens (close to its 30\% target)
+while our rewriter realizes $\approx 48$ tokens ($\sim$3.5\%). So this is not a
+matched-output-token comparison; it is the stronger statement that the rewriter
+is \emph{more accurate while emitting roughly $8.5\times$ fewer tokens}. The
+distilled 1.5B student achieves 0.704 F1,
 a +0.252 improvement over bear that remains statistically significant
 (Table~\ref{tab:distilled}), recovering roughly 64\% of the API teacher's
 frontier margin while running offline.
@@ -586,23 +609,39 @@ are complementary rather than composable, each well suited to different
 deployment scenarios. bear's strengths are real and orthogonal to ours:
 it is non-autoregressive (no generation latency), verbatim (no
 hallucination), and query-independent (compress once, reuse across many
-questions). At the API level we measure the teacher and bear as
-essentially tied in per-call latency (Figure~\ref{fig:latency}) --- both
-dominated by a network round-trip --- so we claim an accuracy-per-token
-advantage, not a speed advantage. For high-throughput, cacheable,
-verbatim-critical deployments, deletion remains the right tool; rewriting
-adds the query-specific regime it cedes.
+questions).
 
-\begin{figure}[!t]
-  \centering
-  \includegraphics[width=0.7\linewidth]{media/latency_bars.png}
-  \caption{Per-call API latency (mean), teacher vs.\ bear. Both are
-  dominated by a network round-trip and are essentially tied; bear's
-  structural speed edge (non-autoregressive deletion, amortized over
-  reuse) is real but is not a wall-clock win in our measurements. We claim
-  accuracy-per-token, not speed.}
-  \label{fig:latency}
-\end{figure}
+\paragraph{Latency: the deployable artifact, not the teacher.}
+We measure wall-clock per-call latency for the artifact we would actually
+ship --- the distilled 1.5B student generating on an H100 (model load
+excluded) --- against bear-1.1 on the same 30 HotpotQA instances
+(Table~\ref{tab:latency}). bear, being non-autoregressive, is faster:
+$1.06$\,s mean versus the student's $1.96$\,s ($1.8\times$). This is an
+honest cost of autoregressive rewriting, and we state it plainly: the student
+trades roughly $1.8\times$ latency for $\sim$$9.4\times$ fewer output tokens
+($46$ vs.\ $436$) plus query-awareness. For latency-critical or
+compress-once-serve-many deployments, deletion remains the right tool;
+rewriting wins where per-call token cost and distractor-dropping dominate.
+(For completeness, at the \emph{API} level the DeepSeek teacher and bear are
+essentially tied --- both dominated by a network round-trip --- so the
+student's autoregressive generation, not the method, is the latency source.)
+
+\begin{table}[t]
+\caption{Deployable latency on HotpotQA ($n=30$, ratio 0.3). The distilled
+student generates autoregressively on an H100 (model load excluded); bear is
+non-autoregressive deletion. The student is $1.8\times$ slower per call but
+emits $\sim$$9.4\times$ fewer tokens.}
+\label{tab:latency}
+\centering
+\begin{tabular}{lccc}
+\toprule
+System & Mean lat.\ (s) & Median (s) & Output tokens \\
+\midrule
+bear-1.1 (deletion)            & \textbf{1.06} & \textbf{1.09} & 436 \\
+Distilled 1.5B (rewriting)     & 1.96          & 1.85          & \textbf{46} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \paragraph{Trauma memory behavior.}
 When the goal is provided at session initialization and the trauma
@@ -630,8 +669,10 @@ conversation is a direct avenue for improvement.
 We presented ReCompress, a two-component system addressing single-turn
 and multi-turn LLM compression. The single-shot component demonstrates
 that query-aware rewriting provides substantial gains on multi-hop QA
-at matched token budgets, and that this capability distills into a 1.5B
-model that generalizes across benchmarks. The multi-turn component
+while emitting far fewer tokens than deletion, and that this capability
+distills into a 1.5B model that transfers to a near-in-distribution benchmark
+(directionally, but not yet significantly, to more dissimilar ones). The
+multi-turn component
 demonstrates that explicit protection of critical facts through tiered
 memory is the right architectural approach for multi-hop reasoning under
 compression.

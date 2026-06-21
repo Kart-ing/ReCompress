@@ -10,6 +10,19 @@ MAX_RETRIES = 2
 MIN_MAX_TOKENS = 1024
 MODEL = "deepseek-chat"
 
+# --- Overhead accounting (for the honest multi-turn cost axis) ---
+# Every compression-side DeepSeek call (trauma extractor, Echidna, checkpoint
+# compressor) goes through call(); we accumulate its token usage here so a
+# benchmark can report TOTAL tokens spent, not just context-to-solver.
+_OVERHEAD = {"prompt": 0, "completion": 0, "total": 0, "calls": 0}
+
+def reset_overhead():
+    for k in _OVERHEAD:
+        _OVERHEAD[k] = 0
+
+def get_overhead() -> dict:
+    return dict(_OVERHEAD)
+
 def set_verbose(v: bool):
     global VERBOSE
     VERBOSE = v
@@ -43,6 +56,11 @@ def call(
         elapsed = time.time() - t0
         result = resp.choices[0].message.content
         finish_reason = resp.choices[0].finish_reason
+        if resp.usage:
+            _OVERHEAD["prompt"] += resp.usage.prompt_tokens or 0
+            _OVERHEAD["completion"] += resp.usage.completion_tokens or 0
+            _OVERHEAD["total"] += resp.usage.total_tokens or 0
+            _OVERHEAD["calls"] += 1
         if VERBOSE and resp.usage:
             print(f"  [DEEPSEEK] {elapsed:.1f}s | usage: prompt={resp.usage.prompt_tokens} completion={resp.usage.completion_tokens} total={resp.usage.total_tokens}")
         if result is None or result.strip() == "":

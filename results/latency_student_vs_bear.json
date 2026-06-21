@@ -1,0 +1,16 @@
+{
+  "n": 30,
+  "ratio": 0.3,
+  "student_distilled": {
+    "mean_latency_s": 1.962231731200002,
+    "median_latency_s": 1.848209279999999,
+    "p90_latency_s": 3.264082602000002,
+    "mean_out_tokens": 46.233333333333334
+  },
+  "bear": {
+    "mean_latency_s": 1.0627949415861317,
+    "median_latency_s": 1.093417374882847,
+    "p90_latency_s": 1.1643683747388422,
+    "mean_out_tokens": 436.5
+  }
+}
