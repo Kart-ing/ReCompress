@@ -239,3 +239,38 @@ Per the "merge only if it wins" rule, **v4 was not merged; v3 remains the model.
 beat plain teacher-imitation for compression distillation* — a non-obvious result worth
 recording (most teams wouldn't test it). Motivates v5: keep answer-grounding's data-quality
 benefit but REMOVE the best-of-N judge-selection (greedy-only + drop teacher-failures).
+
+---
+
+## v5 — Answer-grounded, GREEDY-only + answerable-filter (no best-of-N). NEGATIVE, decisive.
+
+v4's loss might have been best-of-N judge-selection bias. v5 tests that: greedy compression
+only (temp 0, ONE candidate), but still drop examples where the teacher's greedy output fails
+the solver (keep answerable-only). Removes best-of-N entirely. Data: 4175 pairs, avg answer-F1
+0.924. Same v3 config.
+
+**Result — v5 reproduces v4's loss; it was NOT a best-of-N artifact:**
+
+| Benchmark | bear | v3 (imitate) | v4 (best-of-N) | v5 (greedy+filter) |
+|---|---|---|---|---|
+| HotpotQA (in-dist) | 0.452 | **0.704** sig | 0.659 sig | 0.664 sig |
+| 2Wiki (OOD) mean | 0.390 | **0.570** sig | 0.520 **n.s.** | 0.512 **n.s.** |
+| 2Wiki (OOD) trimmed-mid33% | 0.196 | **0.694** | 0.556 | 0.534 |
+
+**Decisive finding:** *answer-grounded distillation (filtering training data by frozen-solver
+success) does NOT beat plain teacher-imitation — on either selection scheme (best-of-N v4 or
+greedy v5).* Worse, on out-of-distribution 2Wiki BOTH answer-grounded variants drop to
+non-significant, while v3 stays significant. The gap widens on the trimmed (typical-case) mean.
+
+**Why (best current explanation):** the answerable-only filter (a) removes hard examples the
+model needs, and (b) selects compressions tuned to the *frozen solver's in-distribution
+behavior*, which overfits the judge and costs out-of-distribution generalization. Teacher-
+imitation trains on the teacher's full output distribution (including imperfect compressions),
+which generalizes better.
+
+**Methodological note:** on in-distribution HotpotQA the gap looked small (−0.04); only the
+OOD 2Wiki eval exposed the real failure (loss of significance). In-distribution flattered the
+answer-grounded models — a reminder to judge generalization on OOD data, not the training source.
+
+**Decision:** v3 remains the submission model. v4+v5 are a documented negative result.
+The novelty contribution is #3 (the deletion ceiling), not answer-grounding.
