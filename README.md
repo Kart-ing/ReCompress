@@ -24,7 +24,7 @@ ReCompress is one research project in **two acts**:
 
 - **A distilled 1.5B query-aware compressor** (`recompress/`) — DeepSeek teacher → Qwen2.5-1.5B + LoRA on a Modal H100, ~$10 total. Runs offline.
 - **Re:Zero, a flat-context multi-turn memory** (`rezero/`) — trauma (protected facts) + compressed checkpoint + recent delta, capped at ~300 tokens, with the Act 1 model as the checkpoint compressor. Keeps a 12-turn conversation flat at ~184 tokens vs a naive agent's 1,482.
-- **A research-grade evaluation harness** — a 5-bar paired benchmark at matched budget with bootstrap 95% CIs across four QA datasets, a cross-solver audit (independent judge), a mask-the-answer audit, and a documented v1→v3 distillation trajectory including the failures. *(All numbers in the Appendix.)*
+- **A research-grade evaluation harness** — a 5-bar paired benchmark (same compression instruction, ours realizing ~8.5× fewer tokens) with bootstrap 95% CIs across four QA datasets, a cross-solver audit (independent judge), a mask-the-answer audit, and a documented v1→v3 distillation trajectory including the failures. *(All numbers in the Appendix.)*
 
 ---
 
@@ -365,4 +365,4 @@ modal run experiments/combined_benchmark.py --n 30 # Act1⇄Act2: -> results/com
 
 ### TL;DR
 
-bear-1.1 deletes tokens blind to your question. ReCompress reads the question, drops the distractors, rewrites the rest — then distills that into a **1.5B model that runs offline for ~cents** and still **beats bear at a matched token budget** (+56% F1 on HotpotQA, +46% on a dataset it never trained on, both with CIs excluding zero). It took three distillation attempts — a data-starved wash, a capacity-driven overfit, then a regularized, early-stopped win — and we report all three, including the two benchmarks where the edge is real but not yet significant, and the fact that stacking on bear doesn't work. **What we proved: a small open model can carry most of a frontier compressor's query-aware edge, offline, for ~$10.**
+bear-1.1 deletes tokens blind to your question. ReCompress reads the question, drops the distractors, rewrites the rest — then distills that into a **1.5B model that runs offline for ~cents** and **beats bear while emitting ~8.5× fewer tokens** (+56% F1 on HotpotQA at ~48 tokens vs bear's ~409, +46% on a near-in-distribution dataset it never trained on, both with CIs excluding zero; directional-but-unproven on the dissimilar OOD sets). It took three distillation attempts — a data-starved wash, a capacity-driven overfit, then a regularized, early-stopped win — and we report all three, including the two benchmarks where the edge is real but not yet significant, the fact that stacking on bear doesn't work, and an answer-masking audit showing much of the win is *span selection* (we keep the answer-bearing span at a 3.5% budget where deletion truncates it). **What we proved: a small open model can carry most of a frontier compressor's query-aware edge, offline, for ~$10.**

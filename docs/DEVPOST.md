@@ -29,7 +29,7 @@ Compression isn't only a single-prompt problem, though. In a long **conversation
 
 **Headline results.**
 
-*Act 1 — distilled 1.5B vs bear-1.1, matched token budget, QA-F1, paired bootstrap 95% CI:*
+*Act 1 — distilled 1.5B vs bear-1.1, same compression instruction (ours realizes ~8.5× fewer tokens: ~48 vs ~409 on HotpotQA), QA-F1, paired bootstrap 95% CI:*
 
 | Benchmark | ReCompress 1.5B | bear-1.1 | Δ vs bear | significant? |
 |---|---|---|---|---|
@@ -63,7 +63,7 @@ The Act 1 distilled model is the result of **five distillation experiments**, ea
 
 Plus a sixth idea we **designed, tested, and dropped — "Bear-Booster"**: train the small model to make *bear's* output better (optimize `bear(model(text))`). Our own data showed it's *dominated* — the standalone model beats `model→bear` on every benchmark, and a pre-processor is strictly costlier than bear alone. A clean negative result that sharpened the thesis: **rewriting must replace deletion, not augment it.**
 
-Pipeline: DeepSeek teacher → 5,000 query-aware compression pairs → LoRA fine-tune Qwen2.5-1.5B (4-bit, Unsloth) on a Modal H100 → eval vs bear (TTC SDK) at matched budget with bootstrap CIs across 4 benchmarks → wire the winner (**Hearth**) into Re:Zero as a pluggable backend → custom multi-turn benchmark. **~$10–15 total compute.**
+Pipeline: DeepSeek teacher → 5,000 query-aware compression pairs → LoRA fine-tune Qwen2.5-1.5B (4-bit, Unsloth) on a Modal H100 → eval vs bear (TTC SDK) under the same compression instruction with bootstrap CIs across 4 benchmarks → wire the winner (**Hearth**) into Re:Zero as a pluggable backend → custom multi-turn benchmark. **~$10–15 total compute.**
 
 ## Challenges we ran into
 
@@ -74,14 +74,14 @@ Pipeline: DeepSeek teacher → 5,000 query-aware compression pairs → LoRA fine
 
 ## Accomplishments we're proud of
 
-- A **1.5B model that recovers the query-aware regime bear cedes** — at matched budget, with statistical significance, **generalizing to a benchmark it never trained on** (2Wiki, +46%). It complements deletion rather than replacing it: deletion stays best for fast/verbatim/reusable; rewriting adds the query-specific case.
+- A **1.5B model that recovers the query-aware regime bear cedes** — beating bear with statistical significance while emitting ~8.5× fewer tokens, and **transferring to a near-in-distribution benchmark it never trained on** (2Wiki, +46%; directional-but-unproven on the dissimilar OOD sets). It complements deletion rather than replacing it: deletion stays best for fast/verbatim/reusable; rewriting adds the query-specific case.
 - **We stress-tested our own headline before a judge could.** The teacher and solver are both DeepSeek (a circularity a sharp reviewer attacks first), so we **re-scored with an independent solver (Claude Sonnet)**: the gap is **invariant** — Δ vs bear = **+0.288** (independent) vs **+0.285** (in-family), CI excludes zero both ways. The result is not a same-family artifact.
 - A **unified system**: the same distilled compressor works as a single-shot compressor *and* as a multi-turn memory engine (the strongest backend of the three we tested, vs DeepSeek and bear).
 - **Research-grade rigor + intellectual honesty in 24h**: bootstrap CIs on every claim, a cross-solver audit, a mask-the-answer audit (measured *against ourselves*), 5 named experiments with a clear winner, three documented negative results, a conceptual finding (the "deletion ceiling"), a 13-figure visualization suite, and a custom multi-turn benchmark.
 
 ## What we learned
 
-- **Query-aware *rewriting* beats blind *deletion*** at matched budget — most where there are distractors (multi-hop QA). On purely abstractive QA (MS MARCO) it ties bear — an honest boundary we report.
+- **Query-aware *rewriting* beats blind *deletion*** at far fewer tokens — most where there are distractors (multi-hop QA). On purely abstractive QA (MS MARCO) it ties bear — an honest boundary we report.
 - **The win survives an independent judge** (Claude Sonnet, +0.288) — it's not teacher↔solver affinity.
 - **Much of the margin is span-selection, not reasoning — and we proved it on ourselves.** Masking the gold answer from the compression drops *our* F1 by 65% (vs bear's 31%). So our edge is largely "query-aware compression keeps the answer-bearing span at a 3.5% budget where bear's deletion at 30% truncates it" — a real, useful property, stated precisely rather than oversold.
 - **We measured our multi-turn overhead honestly — and found our own expensive component was useless.** The "8.1× flatter context" is the solver-context axis; counting the per-turn compression LLM calls, the system actually costs *more* in total tokens at short horizons. Digging in, the LLM "Echidna" checkpoint-trigger turned out to decide `checkpoint` **98.3% of the time** — no real decision. We replaced it with a free rule (2.6× cheaper, same F1) and swept conversation length: with the cheap trigger the system beats an *uncached* growing-history agent on total tokens from ~6 turns, widening to **~3× by 15 turns**. The LLM-trigger version was actually so expensive it got overtaken by the naive agent around turn 11 — it was counterproductive, not just wasteful. Against a *cached* agent we still don't win on raw tokens, and we say so.

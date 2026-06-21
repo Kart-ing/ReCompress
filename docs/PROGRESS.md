@@ -3,6 +3,13 @@
 **Last updated:** H2 of 24h hackathon
 **Track:** The Token Company Compression Challenge (UC Berkeley AI Hackathon 2026)
 
+> ⚠️ **Historical dev log — not the final claims.** Phrases like "matched budget" below
+> reflect in-progress framing that was later corrected. The accurate framing (in `README.md`,
+> `templateArxiv.tex`, `docs/DEVPOST.md`): both systems get the same ratio-0.3 *instruction*,
+> but ours realizes ~8.5× fewer tokens (~48 vs ~409) — it wins at far fewer tokens, not a
+> matched output budget. Multi-turn flatness is solver-context; total cost is reported in
+> `docs/MULTITURN_OVERHEAD.md`.
+
 ---
 
 ## What we're building
