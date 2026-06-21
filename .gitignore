@@ -27,3 +27,5 @@ templateArxiv.pdf
 demo/node_modules/
 demo/dist/
 demo/tsconfig.tsbuildinfo
+.vercel/
+**/.vercel/

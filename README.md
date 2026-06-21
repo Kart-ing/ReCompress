@@ -4,7 +4,7 @@
 
 **A query-aware *rewriting* layer that extends [The Token Company](https://thetokencompany.com)'s compression into the regime deletion can't reach — distilled into a 1.5B model, then carried into multi-turn conversations.**
 
-📄 **Paper:** [Zenodo (DOI: 10.5281/zenodo.20786357)](https://doi.org/10.5281/zenodo.20786357) · 🎛 **Interactive demo:** see `demo/`
+📄 **Paper:** [Zenodo (DOI: 10.5281/zenodo.20786357)](https://doi.org/10.5281/zenodo.20786357) · 🎛 **Interactive demo:** [demo-eight-olive-97.vercel.app](https://demo-eight-olive-97.vercel.app) · 🖥 **Slides:** [slides-teal-tau.vercel.app](https://slides-teal-tau.vercel.app)
 
 The Token Company's **bear-1.1** is an excellent foundation: it compresses prompts by deleting low-value tokens — fast, verbatim-faithful, query-agnostic, and reusable across many questions. By design, it doesn't paraphrase or generate ("nothing is paraphrased or generated"). **ReCompress takes up exactly where that design leaves off:** a small, question-conditioned model that *rewrites* — dropping passages irrelevant to *this* question and densifying the rest — then we **distill that behavior into Qwen2.5-1.5B + LoRA** so it runs offline and cheap, in the same product category as bear. It is **not a competitor to bear; it's the abstractive, query-aware regime bear explicitly cedes**, packaged as a small model that complements a deletion-based compressor.
 
