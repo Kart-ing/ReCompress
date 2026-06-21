@@ -2,9 +2,9 @@
 
 Measures per-instance wall-clock latency of the distilled 1.5B compressor on the H100
 (model loaded once via the Compressor class), plus the two stacked variants that use it.
-Pairs with src/act1/latency.py (API path) for the bear-vs-ours-vs-stacking comparison.
+Pairs with recompress/act1/latency.py (API path) for the bear-vs-ours-vs-stacking comparison.
 
-Run: modal run src/distill/latency_distilled.py --n 20 --ratio 0.3
+Run: modal run recompress/distill/latency_distilled.py --n 20 --ratio 0.3
 """
 from __future__ import annotations
 import json

@@ -1,5 +1,5 @@
 """1-instance smoke test: verify bear + deepseek (compressor + solver) all wire up.
-Run: python -m src.act1.smoke
+Run: python -m recompress.act1.smoke
 """
 from __future__ import annotations
 from recompress.act1.data import load_hotpotqa, context_to_text

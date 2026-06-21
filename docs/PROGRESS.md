@@ -99,7 +99,7 @@ Timeout + rate-limit issues fixed; full 50-instance 5-bar benchmark now runs end
 | 1 | **§5 5-bar validation** (50 instances, proves headline) | ✅ **DONE — PASS** (+0.395 F1, CI excl. 0) | — |
 | 2 | **Generate distillation data** (300 pairs via DeepSeek API) | ✅ **DONE** — 300/300, 0 err, `data/distill/train.jsonl` | — |
 | 3 | **Validate Modal training app** (syntax + config check) | ✅ **DONE — GO** (auth OK; fixed unsatisfiable deps + trl API breakages) | — |
-| 4 | **LoRA train Qwen2.5-1.5B on Modal H100** (3 epochs, ~30 min) | ⏳ READY TO FIRE (`modal run src/distill/train.py --data data/distill/train.jsonl`) | ~45 min |
+| 4 | **LoRA train Qwen2.5-1.5B on Modal H100** (3 epochs, ~30 min) | ⏳ READY TO FIRE (`modal run recompress/distill/train.py --data data/distill/train.jsonl`) | ~45 min |
 | 5 | **Re-run 5-bar with distilled model as "ours"** | blocked on step 4 | 20 min after |
 | 6 | Re:Zero multi-turn (teammate, on real compressor) | parallel | their stream |
 | 7 | Demo + pitch | after results | H18-22 |
@@ -109,7 +109,7 @@ The teacher compresses to **~2.4% ratio** (not the 30% target — `compress_ours
 
 ### Modal fixes applied by Workstream 3 (so step 4 won't fail)
 - `train.py`: removed unsatisfiable `trl==0.11.4`/`peft==0.13.2` pins (conflict with `unsloth`), added `unsloth_zoo`; `SFTTrainer(tokenizer=)` → `processing_class=`; `SFTConfig(max_seq_length=)` → `max_length=`.
-- `infer.py`: same dep fix + `.add_local_python_source("src")` (modal ≥1.0 no longer auto-mounts; needed for `src.*` imports at runtime).
+- `infer.py`: same dep fix + `.add_local_python_source("recompress")` (modal ≥1.0 no longer auto-mounts; needed for `recompress.*` imports at runtime).
 - ⚠️ `unsloth` left unpinned — GPU image build (pip resolution on CUDA) is the one thing untested; pin once a known-good version is confirmed on the build box for a reproducible demo.
 
 ### The real submission number

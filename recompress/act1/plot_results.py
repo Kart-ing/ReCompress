@@ -1,7 +1,7 @@
 """Graph the cross-benchmark 5-bar results: distilled 1.5B 'ours' vs bear vs full-context,
 with paired-bootstrap CIs. Reads results/5bar_distilled_<benchmark>.json files.
 
-Run: python -m src.act1.plot_results
+Run: python -m recompress.act1.plot_results
 """
 from __future__ import annotations
 import json

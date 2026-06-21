@@ -12,9 +12,9 @@ Strategies measured:
   - ours→bear   : ours then bear
 
 The distilled model's latency is measured separately on Modal (see
-src/distill/latency_distilled.py) since it runs on the GPU.
+recompress/distill/latency_distilled.py) since it runs on the GPU.
 
-Run: python -m src.act1.latency --n 20 --ratio 0.3
+Run: python -m recompress.act1.latency --n 20 --ratio 0.3
 """
 from __future__ import annotations
 import json

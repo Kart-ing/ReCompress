@@ -5,7 +5,7 @@ The teacher makes ONE DeepSeek call per instance, so generation is I/O-bound. We
 calls out across a ThreadPoolExecutor (default 8 workers) and append each finished pair to the
 output JSONL immediately (flush), so the run is resumable and a crash never loses progress.
 
-Run: python -m src.distill.gen_data --n 1000 --out data/distill/train.jsonl
+Run: python -m recompress.distill.gen_data --n 1000 --out data/distill/train.jsonl
 """
 from __future__ import annotations
 import json

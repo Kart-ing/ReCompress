@@ -15,7 +15,7 @@ Strategy — teacher-for-bear distillation with a survival filter:
 So every training target is proven to yield a good answer AFTER bear — which is exactly
 the objective the standalone v3 model was never trained for (and why ours->bear washed out).
 
-Run: python -m src.distill.gen_data_bearimprover --n 1500 --out data/distill/bearimprover.jsonl
+Run: python -m recompress.distill.gen_data_bearimprover --n 1500 --out data/distill/bearimprover.jsonl
 """
 from __future__ import annotations
 import json

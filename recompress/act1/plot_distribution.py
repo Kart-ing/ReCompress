@@ -5,7 +5,7 @@ The mean F1 hides *concentration*: a model with mean 0.5 because it scores 0.9 o
 This plots EVERY per-instance F1 so you can see whether scores are bimodal (0/1 split) or
 concentrated — and compare bear vs our distilled variants directly.
 
-Run: python -m src.act1.plot_distribution --benchmark 2wiki
+Run: python -m recompress.act1.plot_distribution --benchmark 2wiki
 """
 from __future__ import annotations
 import json

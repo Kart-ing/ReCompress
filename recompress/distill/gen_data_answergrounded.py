@@ -17,7 +17,7 @@ compression that drops the answer fact still gets imitated). Answer-grounding fi
 out and selects, per example, the compression that actually works downstream — best-of-N
 rejection sampling against the real task metric.
 
-Run: python -m src.distill.gen_data_answergrounded --n 1500 --candidates 4 --out data/distill/answergrounded.jsonl
+Run: python -m recompress.distill.gen_data_answergrounded --n 1500 --candidates 4 --out data/distill/answergrounded.jsonl
 """
 from __future__ import annotations
 import json

@@ -11,7 +11,7 @@ Generates a gallery of figures into results/figures/:
   8. multiturn_tokens.png        — (if combined benchmark exists) flat vs growing context
   9. multiturn_f1.png            — (if combined benchmark exists) final-answer F1 per strategy
 
-Run: python -m src.act1.plot_all
+Run: python -m recompress.act1.plot_all
 """
 from __future__ import annotations
 import json

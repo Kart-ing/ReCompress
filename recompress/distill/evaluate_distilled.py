@@ -8,7 +8,7 @@ solver from Act 1.
 Bars @ matched token budget: none | bear | ours | bear→ours | ours→bear
 Metric: QA-F1, paired, bootstrap 95% CI on each pairwise delta vs bear.
 
-Run:  modal run src/distill/evaluate_distilled.py --n 50 --ratio 0.3
+Run:  modal run recompress/distill/evaluate_distilled.py --n 50 --ratio 0.3
 """
 from __future__ import annotations
 import json
