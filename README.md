@@ -18,20 +18,22 @@ ReCompress is one research project in **two acts**, both attacking the same prob
 
 ## 1. Act 1 — Headline results (single-shot compression)
 
-Distilled **Qwen2.5-1.5B + LoRA** ("ours") vs **bear-1.1** ("bear"), at a **matched token budget** (ratio = 0.3), 50 seeded instances per benchmark, frozen DeepSeek solver, QA-F1, paired bootstrap 95% CI on the per-instance delta vs bear.
+Distilled **Qwen2.5-1.5B + LoRA** ("ours") vs **bear-1.1** ("bear"), under the **same token *cap*** (ratio = 0.3), 50 seeded instances per benchmark, frozen DeepSeek solver, QA-F1, paired bootstrap 95% CI on the per-instance delta vs bear. **Crucially, ours wins while spending far *fewer* tokens than bear** — see the budget note below; this is a "beats bear at ~8× fewer tokens" result, not a same-spend tie.
 
 | Benchmark | ours (F1) | bear (F1) | Δ vs bear | 95% CI | rel. | verdict |
 |---|---:|---:|---:|:--:|---:|:--:|
 | **HotpotQA** (in-domain) | **0.704** | 0.452 | **+0.252** | (+0.103, +0.396) | **+56%** | ✅ **PASS** |
-| **2Wiki** (cross-dataset) | **0.570** | 0.391 | **+0.180** | (+0.030, +0.340) | **+46%** | ✅ **PASS** |
-| MuSiQue (cross-dataset) | 0.297 | 0.186 | +0.111 | (−0.027, +0.240) | +60% | ◐ n.s. |
-| SQuAD v2 (cross-dataset, single-hop) | 0.593 | 0.471 | +0.123 | (−0.026, +0.269) | +26% | ◐ n.s. |
+| **2Wiki** (near-in-dist*) | **0.570** | 0.391 | **+0.180** | (+0.030, +0.340) | **+46%** | ✅ **PASS** |
+| MuSiQue (harder OOD) | 0.297 | 0.186 | +0.111 | (−0.027, +0.240) | +60% | ◐ n.s. |
+| SQuAD v2 (single-hop OOD) | 0.593 | 0.471 | +0.123 | (−0.026, +0.269) | +26% | ◐ n.s. |
 
-- **PASS** = the 95% CI on the paired delta excludes zero (ours is significantly better than bear).
-- **n.s.** = "not significant": ours is *directionally* better on all four benchmarks (positive delta everywhere), but on MuSiQue and SQuAD the CI just includes zero at n=50, so we don't claim significance.
-- The student was trained **only on HotpotQA-derived teacher data.** 2Wiki, MuSiQue and SQuAD are zero-shot transfer — the 2Wiki PASS is the strongest evidence the model learned *query-aware compression as a skill*, not HotpotQA trivia.
+- **PASS** = the 95% CI on the paired delta excludes zero. **Significant on 2 of 4 benchmarks.**
+- **\*Honest generalization read:** 2Wiki is multi-hop Wikipedia QA built much like HotpotQA, so its "transfer" is *near*-in-distribution. The genuinely dissimilar sets — **MuSiQue (harder multi-hop) and SQuAD (single-hop) are both n.s.** So the accurate claim is: *significant on multi-hop-with-distractors; directional-but-unproven on dissimilar tasks at n=50.* Not "generalizes zero-shot," full stop.
+- The student was trained only on HotpotQA-derived teacher data.
 
-**What the upper bound looks like.** The API teacher it distills from (DeepSeek, query-aware) beats bear by **+0.395 F1** on HotpotQA (`ours`=0.847 vs bear=0.452, CI (+0.259, +0.538)) — and at ~3.5% of the tokens it nearly matches the **full-context ceiling** (`none`=0.877). The 1.5B student recovers about **64%** of that frontier-model margin (0.252 / 0.395) while running on a single small open model.
+> **⚠️ Known confound we name up front (a sharp reviewer will go here first): the teacher and the solver are both DeepSeek.** The teacher generates the compressions the student learns to mimic, and a frozen DeepSeek then grades the answers — so "ours" may enjoy some *solver-affinity inflation* that bear (never tuned to any solver) does not. "We hold the solver fixed" makes it *controlled*, not *unbiased*. The clean test is a non-DeepSeek solver; see [§4.3 Cross-solver check](#43-cross-solver-check-the-circularity-test) for what we measured / what's outstanding.
+
+**Upper bound.** The DeepSeek API teacher beats bear by **+0.395 F1** on HotpotQA (ours=0.847 vs bear=0.452, CI (+0.259, +0.538)), nearly matching the full-context ceiling (none=0.877) at a fraction of the tokens. The 1.5B student recovers ~**64%** of that frontier margin (0.252/0.395) running offline.
 
 > On HotpotQA the budgets are: full context ≈ 1,364 tok → bear keeps ≈ 409 tok (30%) → **ours rewrites down to ≈ 48 tok (3.5%)** and is still **more accurate** than bear at 8× the tokens. Query-aware rewriting doesn't just compress harder; it compresses *better*, because it throws away the distractor passages bear faithfully preserves.
 
@@ -145,6 +147,21 @@ All bars are truncated to the **same target token budget** and judged by the **s
   - **Why:** our model's output is already a dense ~3.5%-ratio rewrite. Running bear's character-for-character deletion *on top of that* truncates a paragraph that has no slack left — it mangles a finished product. And running bear *first* hands our model shredded token-soup to rewrite. The two operations have incompatible contracts; composing them destroys evidence rather than compounding savings.
   - **Takeaway:** ReCompress is a *replacement* for bear in the query-aware regime, not a *layer* on top of it. (See §8 for the future-work idea this motivates.)
 
+### 4.3 Cross-solver check (the circularity test) + answer-leakage + faithfulness
+
+A sharp reviewer's first attack: **the teacher (DeepSeek) and the solver (DeepSeek) are the same family**, so "ours" may enjoy solver-affinity bear never had. "We hold the solver fixed" makes the comparison *controlled*, not *unbiased*. So we re-ran the HotpotQA head-to-head with a solver independent of **both** the teacher and the student — **Claude Sonnet** (n=50, ratio 0.3, same compressions, `results/cross_solver_audit.json`):
+
+| Solver | ours | bear | Δ vs bear | 95% CI | verdict |
+|---|---|---|---|---|---|
+| DeepSeek (in-family) | 0.737 | 0.452 | **+0.285** | (+0.136, +0.437) | PASS |
+| **Claude Sonnet (independent)** | 0.587 | 0.299 | **+0.288** | (+0.149, +0.426) | ✅ **PASS** |
+
+**The gap survives a fully independent judge — essentially unchanged (+0.288 vs +0.285), CI still excludes zero.** Absolute scores drop (Sonnet grades harder: ours 0.59, bear 0.30), but the *margin* — the actual claim — is invariant to who grades. The win is not a teacher↔solver artifact. *(We did not have time to cross-solver every benchmark; this is HotpotQA only.)*
+
+**Answer-leakage (reported, not hidden).** At a ~3.5% ratio on short-answer QA, how often does the compressor just *write the answer down*? We measured it: **the gold answer appears verbatim in 33/50 (66%) of ours' compressions.** That is material, and we state it plainly. Two things keep it from undercutting the result: (a) inspection shows most "leaks" are the compressor correctly keeping the *one supporting sentence* (e.g. "...endowed by **Magdalen College**"), which is good query-aware selection, not cheating; (b) if ours were merely echoing answers, it would not still beat bear by +0.29 **under an independent solver** — verbatim spans help any solver equally, and bear preserves verbatim source tokens too. Still, QA-F1 at this ratio partly rewards near-extraction; treat the headline as "query-aware selection + rewriting," with the caveat that on short-span QA selection alone surfaces the answer often.
+
+**Faithfulness (the abstractive risk, with receipts).** Rewriting can hallucinate or drop a fact — we name this as the failure mode, so we measured it. **9/50 (18%) are wrong under *both* judges.** A concrete hallucination: for a question whose gold is "1952", ours compressed to *"Rebel Without a Cause (1955)"* — wrong year, confidently stated. Another dropped the relevant passage entirely (kept "Fels Institute" for a question about Mossad). Example compressions (leaked, clean, and failed) are in `results/cross_solver_audit.json` `per_instance`. This is the real cost of abstraction; bear, being extractive, cannot invent a wrong year (its failure mode is keeping the wrong *true* tokens instead).
+
 ---
 
 ## 5. The distillation story (the research contribution)
@@ -231,13 +248,14 @@ It took **7+ debugging iterations** to get the first clean H100 train. Documente
 
 We'd rather state clearly what we did **not** prove.
 
-1. **bear has real, structural advantages we don't beat.** bear is **deletion**, so it's verbatim (no hallucination risk — it can only keep your real tokens), **query-agnostic** (compress a document *once* and reuse the result across many different questions; we must recompress per question), and **needs no training**. Our model can mis-read a question and drop the answer's evidence. For a compress-once-serve-many cache, or where verbatim fidelity is required, bear is the right tool.
+1. **bear has real, structural advantages we don't beat.** bear is **deletion**, so it's verbatim (no hallucination risk — it can only keep your real tokens), **query-agnostic** (compress a document *once* and reuse the result across many different questions; we must recompress per question), and **needs no training**. Our model can mis-read a question and drop the answer's evidence — **measured: 18% (9/50) of HotpotQA cases are wrong under both an in-family and an independent solver, including a confident wrong-year hallucination** (§4.3). For a compress-once-serve-many cache, or where verbatim fidelity is required, bear is the right tool.
 2. **Latency is not a win for us.** At the API level the teacher and bear are essentially tied (≈1.08s vs ≈1.05s mean per call — both dominated by a network round-trip; see `results/latency_api.json`). bear's structural speed edge (deletion is not autoregressive generation, and it amortizes over reuse) is real but is **not** demonstrated as a wall-clock win in our measurements. We claim an **accuracy/token** win, not a speed win.
 3. **Two of four benchmarks are not significant** (MuSiQue, SQuAD) — see §4.2. Positive everywhere, proven on two.
 4. **Stacking fails, sometimes significantly** (§4.2) — ReCompress replaces bear in this regime; it does not layer on it.
 5. **We did not beat published SOTA** (LLMLingua / LLMLingua-2 — multi-year Microsoft Research efforts). We beat **bear-1.1, the challenge sponsor's product**, which is the relevant comparison for this track. Our distinction vs LLMLingua is methodological: they **delete** tokens (extractive); we **rewrite** them (abstractive + query-aware).
 6. **n=50 per benchmark, ratio=0.3 only.** A larger n and a ratio sweep would tighten the CIs and map where the win holds; out of scope for 24h.
 7. **The student over-compresses** (~3.8% vs the ~30% target). It wins anyway, but the budget knob isn't well-calibrated yet.
+8. **Answer-leakage is high on short-span QA: 66% (33/50) of HotpotQA compressions contain the gold answer verbatim** (§4.3). On entity-answer multi-hop QA, query-aware selection often surfaces the exact answer span, so QA-F1 partly rewards near-extraction. The cross-solver-invariant +0.29 gap shows the win isn't *only* leakage, but we report the rate rather than let it be inferred.
 
 ---
 
