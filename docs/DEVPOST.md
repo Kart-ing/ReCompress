@@ -101,8 +101,12 @@ Pipeline: DeepSeek teacher → 5,000 query-aware compression pairs → LoRA fine
 `python` · `qwen2.5-1.5b` · `lora` · `unsloth` · `modal` · `h100` · `deepseek-api` · `the-token-company-sdk` · `huggingface-datasets` · `hotpotqa` · `2wikimultihop` · `musique` · `squad` · `ms-marco` · `matplotlib`
 
 ## Links
-- **Code (both acts):** https://github.com/Kart-ing/ReCompress
-- **Trained adapters + full experiment archive (all 5 experiments, incl. failures) + 13 figures:** in the repo (Git LFS)
+- **📄 Paper (Zenodo, DOI):** https://doi.org/10.5281/zenodo.20786357
+- **📓 Reproduce in Google Colab:** https://colab.research.google.com/github/Kart-ing/ReCompress/blob/main/notebooks/ReCompress_reproduce.ipynb
+- **🎛 Interactive demo:** https://demo-eight-olive-97.vercel.app
+- **🖥 Slides:** https://slides-teal-tau.vercel.app
+- **💻 Code (both acts):** https://github.com/Kart-ing/ReCompress
+- **Trained adapters + full experiment archive (all 5 experiments, incl. failures) + figures:** in the repo (Git LFS)
 
 ## One-line differentiator (keep ready for the pitch + Q&A)
 > "LLMLingua **deletes** tokens; we **rewrite** them — distilled into a 1.5B (after five experiments — Hearth won) that extends The Token Company's bear into the query-aware regime it cedes, measured head-to-head with CIs across 4 benchmarks, *and* powers a multi-turn memory that keeps a 12-turn chat flat at 184 tokens while a naive agent hits 1,482."
