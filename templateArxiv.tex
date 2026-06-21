@@ -377,7 +377,7 @@ a pipeline --- a point we develop in the Analysis.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.92\linewidth]{cross_benchmark_bars.png}
+  \includegraphics[width=0.92\linewidth]{media/cross_benchmark_bars.png}
   \caption{Mean QA-F1 by benchmark for full context, bear-1.1, and the
   distilled student (ratio=0.3, $n=50$). The student approaches the
   full-context ceiling on the multi-hop sets while spending a fraction of
@@ -387,7 +387,7 @@ a pipeline --- a point we develop in the Analysis.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.92\linewidth]{delta_ci.png}
+  \includegraphics[width=0.92\linewidth]{media/delta_ci.png}
   \caption{Paired bootstrap deltas vs.\ bear-1.1 with 95\% confidence
   intervals across benchmarks. Intervals to the right of zero (HotpotQA,
   2WikiMultiHop) are significant; MuSiQue and SQuAD are positive but cross
@@ -397,10 +397,10 @@ a pipeline --- a point we develop in the Analysis.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.49\linewidth]{dots_hotpotqa.png}\hfill
-  \includegraphics[width=0.49\linewidth]{dots_2wiki.png}\\[2pt]
-  \includegraphics[width=0.49\linewidth]{dots_musique.png}\hfill
-  \includegraphics[width=0.49\linewidth]{dots_squad.png}
+  \includegraphics[width=0.49\linewidth]{media/dots_hotpotqa.png}\hfill
+  \includegraphics[width=0.49\linewidth]{media/dots_2wiki.png}\\[2pt]
+  \includegraphics[width=0.49\linewidth]{media/dots_musique.png}\hfill
+  \includegraphics[width=0.49\linewidth]{media/dots_squad.png}
   \caption{Per-instance QA-F1 (each dot is one question; bar = mean) for
   bear, ReCompress, and full context across the four benchmarks. The
   per-instance view shows the win is a genuine rightward shift of the
@@ -411,7 +411,7 @@ a pipeline --- a point we develop in the Analysis.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.92\linewidth]{tokens_vs_f1.png}
+  \includegraphics[width=0.92\linewidth]{media/tokens_vs_f1.png}
   \caption{Quality vs.\ cost: mean QA-F1 against mean output tokens for each
   method and benchmark. ReCompress sits up and to the left of bear --- higher
   accuracy at fewer tokens --- which is the central efficiency claim.}
@@ -442,7 +442,7 @@ RbD-Compress + bear-1.1             & 0.472 & 257 \\
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.92\linewidth]{token_trajectory_line.png}
+  \includegraphics[width=0.92\linewidth]{media/token_trajectory_line.png}
   \caption{Per-turn context cost over 12 turns. The naive full-history agent
   grows to 1{,}482 tokens by turn twelve; RbD-Compress stays flat at
   $\sim$184 tokens ($8.1\times$ smaller and diverging), because each turn
@@ -452,8 +452,8 @@ RbD-Compress + bear-1.1             & 0.472 & 257 \\
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.49\linewidth]{multiturn_tokens.png}\hfill
-  \includegraphics[width=0.49\linewidth]{multiturn_f1.png}
+  \includegraphics[width=0.49\linewidth]{media/multiturn_tokens.png}\hfill
+  \includegraphics[width=0.49\linewidth]{media/multiturn_f1.png}
   \caption{Multi-turn HotpotQA. Left: final-turn context tokens per strategy.
   Right: final-answer QA-F1 per strategy. RbD-Compress with the distilled
   student achieves the fewest tokens at the highest F1 of the four
@@ -484,7 +484,7 @@ the sample is small and the per-ratio confidence intervals overlap.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.85\linewidth]{variant_compare.png}
+  \includegraphics[width=0.85\linewidth]{media/variant_compare.png}
   \caption{Protected-buffer ablation: QA-F1 vs.\ checkpoint compression ratio
   for Variant A (protected trauma buffer) and Variant B (single summary) at
   matched total budget. Variant A degrades more gracefully as the checkpoint
@@ -507,8 +507,8 @@ $+0.285$ in-family, with the 95\% CI excluding zero in both cases
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.49\linewidth]{cross_solver_bars.png}\hfill
-  \includegraphics[width=0.49\linewidth]{mask_answer_bars.png}
+  \includegraphics[width=0.49\linewidth]{media/cross_solver_bars.png}\hfill
+  \includegraphics[width=0.49\linewidth]{media/mask_answer_bars.png}
   \caption{Honest-evaluation audits on HotpotQA ($n=50$). Left: the
   ReCompress-vs-bear gap is invariant to the judge (DeepSeek $+0.285$,
   independent Claude Sonnet $+0.288$). Right: mask-the-answer --- redacting
@@ -544,7 +544,7 @@ generalize and sufficient regularization to avoid overfitting.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.85\linewidth]{distill_trajectory.png}
+  \includegraphics[width=0.85\linewidth]{media/distill_trajectory.png}
   \caption{Distillation trajectory: $\Delta$ vs.\ bear-1.1 on HotpotQA across
   the training configurations. Only v3 (5{,}000 examples, rank 32, 3 epochs
   with regularization) crosses into statistical significance; v1 under-fits
@@ -583,7 +583,7 @@ adds the query-specific regime it cedes.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.7\linewidth]{latency_bars.png}
+  \includegraphics[width=0.7\linewidth]{media/latency_bars.png}
   \caption{Per-call API latency (mean), teacher vs.\ bear. Both are
   dominated by a network round-trip and are essentially tied; bear's
   structural speed edge (non-autoregressive deletion, amortized over
