@@ -1,0 +1,33 @@
+{
+  "n": 20,
+  "max_turns": 6,
+  "results": {
+    "naive": {
+      "mean_f1": 0.4849404761904762,
+      "ctx_final": 845.5,
+      "cumulative_uncached": 2959.85,
+      "n": 20
+    },
+    "rezero_deepseek": {
+      "mean_f1": 0.5327290764790764,
+      "ctx_tokens": 196.65,
+      "overhead_tokens": 6861.2,
+      "total_tokens": 7057.85,
+      "n": 20
+    },
+    "rezero_distilled": {
+      "mean_f1": 0.5424404761904762,
+      "ctx_tokens": 174.55,
+      "overhead_tokens": 5396.9,
+      "total_tokens": 5571.45,
+      "n": 20
+    },
+    "rezero_bear": {
+      "mean_f1": 0.41096500721500717,
+      "ctx_tokens": 254.65,
+      "overhead_tokens": 5386.5,
+      "total_tokens": 5641.15,
+      "n": 20
+    }
+  }
+}

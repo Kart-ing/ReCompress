@@ -112,12 +112,16 @@ it comes from the rewriter reliably retaining the answer-bearing span at a
 3.5\% token budget, where deletion at a 30\% budget often truncates it ---
 i.e.\ better query-conditioned \emph{selection}, not a claim of better
 reasoning under compression. Second, we introduce RbD-Compress,
-a multi-turn context management architecture that keeps per-turn token
-cost flat through three components: trauma memory, a protected store of
-critical facts that survives all compression and revert operations; a
+a multi-turn context management architecture that keeps the \emph{context sent
+to the solver} flat through three components: trauma memory, a protected store
+of critical facts that survives all compression and revert operations; a
 versioned checkpoint stack with rollback support; and Echidna, an
 intelligent trigger that reads trauma memory before making compression
-decisions.
+decisions. We are deliberate about scope: this flattens solver context, not
+total token spend --- once per-turn compression overhead is counted, the
+system is cheaper only when the binding constraint is the context window or
+when the solver is far more expensive than the compressor
+(Section~\ref{sec:audits-multiturn}).
 
 The architecture of RbD-Compress is inspired by the Return by Death
 mechanic in the anime \textit{Re:Zero -- Starting Life in Another World},
@@ -487,15 +491,62 @@ RbD-Compress + bear-1.1             & 0.472 & 257 \\
   \label{fig:multiturn}
 \end{figure}
 
-The headline of the multi-turn result is the token axis
-(Figure~\ref{fig:tokencurve}, Table~\ref{tab:multiturn}): RbD-Compress holds
-per-turn context flat at $\sim$184 tokens while the naive agent grows to
-1{,}482 by turn twelve, an $8.1\times$ reduction that widens with
-conversation length. Answer quality is preserved rather than improved --- the
-final-answer QA-F1 spread across the four configurations (0.485--0.501 at
-$n=20$) is within noise, with no confidence interval, so we read it as
-``flat, not degraded'' rather than a quality win. The contribution here is
-holding cost constant at no measurable accuracy cost, not raising accuracy.
+RbD-Compress holds the \emph{context sent to the solver} flat at $\sim$184
+tokens while the naive agent's solver context grows to 1{,}482 by turn twelve
+(Figure~\ref{fig:tokencurve}), an $8.1\times$ reduction on that axis that
+widens with conversation length, at no measurable loss of answer quality (the
+four configurations span 0.485--0.501 at $n=20$, within noise, no CI --- we
+read this as ``flat, not degraded,'' not a quality win).
+
+\paragraph{The honest total-token accounting.}
+\label{sec:audits-multiturn}
+Context-to-solver is not total
+cost. RbD-Compress spends DeepSeek calls \emph{every turn} on the trauma
+extractor, Echidna, and the checkpoint compressor; those tokens are real and
+do not appear on the solver-context axis. We instrumented them
+(Table~\ref{tab:overhead}). The result is sobering and we report it plainly:
+at a 6-turn horizon the compression overhead ($\sim$5{,}400 tokens for the
+distilled backend) \emph{dwarfs} the context savings, so RbD-Compress costs
+$\sim$5{,}571 total tokens versus the naive agent's $\sim$2{,}960 (summed
+across uncached turns) or $\sim$846 (final prompt only, the figure a
+prefix/KV-cached deployment actually pays). \textbf{Counting overhead, our
+multi-turn system is not cheaper in total tokens at this horizon --- it is
+several times more expensive.} Two scopes make the flat-context property
+genuinely useful, and we restrict our claim to them: (i) when the binding
+constraint is the \emph{context window} rather than total token spend (a long
+conversation that would otherwise overflow the solver's limit), and (ii) when
+the solver is a large, expensive model and the compression calls run on a much
+cheaper one --- here all calls use the same DeepSeek model, so that asymmetry
+does not hold and the accounting is unfavorable. The crossover where flat
+context beats growing naive context in \emph{total} tokens occurs only at much
+longer horizons; demonstrating it is future work. We also note the naive
+baseline grows quadratically in cumulative cost \emph{only without} prefix/KV
+caching --- precisely the caching that deletion-based systems exploit --- so
+against a cached deployment the relevant naive number is the 846-token final
+prompt, not the 2{,}960-token sum.
+
+\begin{table}[t]
+\caption{Honest multi-turn token accounting (HotpotQA, 6 turns, $n=20$).
+``ctx$\rightarrow$solver'' is the final solver-prompt size; ``overhead'' is
+the total DeepSeek tokens spent on trauma + Echidna ($+$ compressor) across
+all turns; ``total'' $=$ ctx $+$ overhead. The naive baseline is shown both
+as its final prompt (what a KV-cached deployment pays) and as the sum of
+per-turn prompts (uncached). Counting overhead, RbD-Compress is \emph{not}
+cheaper in total tokens at this horizon.}
+\label{tab:overhead}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Strategy & F1 & ctx$\rightarrow$solver & overhead & total \\
+\midrule
+Naive (final / cached)        & 0.485 & 846  & ---  & \textbf{846} \\
+Naive (uncached sum)          & 0.485 & 2{,}960 & --- & 2{,}960 \\
+RbD-Compress + DeepSeek       & 0.533 & 197  & 6{,}861 & 7{,}058 \\
+\textbf{RbD-Compress + distilled} & \textbf{0.542} & \textbf{175} & 5{,}397 & 5{,}571 \\
+RbD-Compress + bear           & 0.411 & 255  & 5{,}387 & 5{,}641 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Protected Buffer Ablation}
 
@@ -672,10 +723,13 @@ that query-aware rewriting provides substantial gains on multi-hop QA
 while emitting far fewer tokens than deletion, and that this capability
 distills into a 1.5B model that transfers to a near-in-distribution benchmark
 (directionally, but not yet significantly, to more dissimilar ones). The
-multi-turn component
-demonstrates that explicit protection of critical facts through tiered
-memory is the right architectural approach for multi-hop reasoning under
-compression.
+multi-turn component demonstrates that explicit protection of critical facts
+through tiered memory keeps solver context flat at no measurable accuracy cost;
+we report honestly that, once per-turn compression overhead is counted, this is
+a win only when the context window (not total token spend) is the binding
+constraint, or when the solver is far more expensive than the compressor. The
+flat-context property and the protected-buffer mechanism are the contributions;
+a total-token win at realistic horizons remains future work.
 
 Query-aware rewriting and deletion-based compression serve complementary
 operating regimes. Rewriting is best suited to tasks where query
