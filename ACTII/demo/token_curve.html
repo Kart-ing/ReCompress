@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RbD-Compress Token Curve</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #fff; }
+    h2   { color: #2C2C7A; }
+    .charts { display: flex; gap: 2rem; flex-wrap: wrap; }
+    canvas { max-width: 600px; }
+  </style>
+</head>
+<body>
+  <h2>RbD-Compress vs Naive — Token Cost</h2>
+  <div class="charts">
+    <div><h3>Per-turn token cost</h3><canvas id="per_turn"></canvas></div>
+    <div><h3>Cumulative token cost</h3><canvas id="cumulative"></canvas></div>
+  </div>
+  <script>
+    const labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    const rbd    = [13, 11, 10, 10, 11, 9, 10, 14, 7, 18, 20, 20, 19, 22, 24];
+    const naive  = [33, 54, 76, 96, 118, 137, 156, 179, 204, 224, 247, 267, 287, 310, 339];
+    const cum_r  = [13, 24, 34, 44, 55, 64, 74, 88, 95, 113, 133, 153, 172, 194, 218];
+    const cum_n  = [33, 87, 163, 259, 377, 514, 670, 849, 1053, 1277, 1524, 1791, 2078, 2388, 2727];
+
+    new Chart(document.getElementById('per_turn'), {
+      type: 'line',
+      data: { labels, datasets: [
+        { label: 'Naive (full history)', data: naive, borderColor: '#E24B4A', tension: 0.3, fill: false, pointRadius: 4 },
+        { label: 'RbD-Compress (~300 flat)', data: rbd, borderColor: '#1D9E75', tension: 0.3, fill: false, pointRadius: 4 },
+      ]},
+      options: { plugins: { legend: { position: 'top' } },
+        scales: { y: { beginAtZero: true }, x: { title: { display: true, text: 'Turn' } } } }
+    });
+
+    new Chart(document.getElementById('cumulative'), {
+      type: 'line',
+      data: { labels, datasets: [
+        { label: 'Naive cumulative', data: cum_n, borderColor: '#E24B4A', tension: 0.3, fill: false, pointRadius: 4 },
+        { label: 'RbD cumulative',   data: cum_r, borderColor: '#1D9E75', tension: 0.3, fill: false, pointRadius: 4 },
+      ]},
+      options: { plugins: { legend: { position: 'top' } },
+        scales: { y: { beginAtZero: true }, x: { title: { display: true, text: 'Turn' } } } }
+    });
+  </script>
+</body>
+</html>

@@ -14,8 +14,9 @@ class EchidnaDecision:
 
 
 class Echidna:
-    def __init__(self, use_llm: bool = False):
+    def __init__(self, use_llm: bool = False, verbose: bool = False):
         self.use_llm = use_llm
+        self.verbose = verbose
 
     def decide(
         self,
@@ -35,10 +36,14 @@ class Echidna:
     def _mock_decide(self, history: list[dict], turns_since_checkpoint: int) -> EchidnaDecision:
         total_tokens = count_tokens(" ".join(m["content"] for m in history))
         if total_tokens > TOKEN_THRESHOLD:
-            return EchidnaDecision("checkpoint", None, "token threshold exceeded", "high")
-        if turns_since_checkpoint >= TURN_CADENCE:
-            return EchidnaDecision("checkpoint", None, f"cadence: every {TURN_CADENCE} turns", "medium")
-        return EchidnaDecision("pass", None, "within budget", "low")
+            d = EchidnaDecision("checkpoint", None, "token threshold exceeded", "high")
+        elif turns_since_checkpoint >= TURN_CADENCE:
+            d = EchidnaDecision("checkpoint", None, f"cadence: every {TURN_CADENCE} turns", "medium")
+        else:
+            d = EchidnaDecision("pass", None, "within budget", "low")
+        if self.verbose:
+            print(f"  [ECHIDNA] {d.action} ({d.urgency}) — {d.reason} (history={total_tokens} tok)")
+        return d
 
     def _llm_decide(
         self,
@@ -48,7 +53,7 @@ class Echidna:
         turns_since_checkpoint: int,
         available_checkpoints: list[int],
     ) -> EchidnaDecision:
-        from engine.deepseek import call
+        from engine.deepseek import call, repair_json
 
         system = """You are Echidna, the Witch of Greed. You observe conversations with
 perfect clarity and decide when knowledge must be crystallized.
@@ -69,15 +74,20 @@ Available checkpoint IDs for revert: {available_checkpoints}
 Recent conversation:
 {recent_text}"""
 
-        raw = call(system, prompt, max_tokens=80)
-        try:
-            parsed = json.loads(raw)
-        except json.JSONDecodeError:
+        raw = call(system, prompt, max_tokens=200)
+        parsed = repair_json(raw)
+        if parsed is None:
+            if self.verbose:
+                preview = raw[:100].replace("\n", "\\n")
+                print(f"  [ECHIDNA] WARNING: JSON parse failed, raw='{preview}'")
             return EchidnaDecision("pass", None, "parse error — defaulting to pass", "low")
 
-        return EchidnaDecision(
+        d = EchidnaDecision(
             action    = parsed.get("action",    "pass"),
             revert_to = parsed.get("revert_to"),
             reason    = parsed.get("reason",    ""),
             urgency   = parsed.get("urgency",   "low"),
         )
+        if self.verbose:
+            print(f"  [ECHIDNA] {d.action} ({d.urgency}) — {d.reason}")
+        return d

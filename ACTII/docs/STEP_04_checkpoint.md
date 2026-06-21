@@ -1,6 +1,6 @@
 # Step 4 — Checkpoint Builder & Stack
 
-> **Goal:** Build `rezero/checkpoint.py`. The `CheckpointBuilder` compresses history using our own `engine/compressor.py`. The `CheckpointStack` stores versioned entries and supports revert. Wire both into `ReZeroSession`.
+> **Goal:** Build `rezero/checkpoint.py`. The `CheckpointBuilder` compresses history using `compress_ours`. The `CheckpointStack` stores versioned entries and supports revert. Wire both into `ReZeroSession`.
 
 ---
 
@@ -14,8 +14,8 @@
 
 ```python
 from dataclasses import dataclass
-from engine.compressor import compress
-from engine.tokens import count_tokens
+from act1.compress import compress_ours
+from act1.tokens import count_tokens
 
 CHECKPOINT_CAP = 150
 MAX_STACK_SIZE = 10
@@ -44,6 +44,7 @@ class CheckpointStack:
         )
         self.stack.append(entry)
         self._id_counter += 1
+        # cap stack at MAX_STACK_SIZE — drop oldest
         if len(self.stack) > MAX_STACK_SIZE:
             self.stack.pop(0)
         return entry
@@ -52,7 +53,7 @@ class CheckpointStack:
         return self.stack[-1].state if self.stack else ""
 
     def revert_to(self, checkpoint_id: int) -> str:
-        """Pop stack back to checkpoint_id. Returns reverted state."""
+        """Pop stack back to checkpoint_id. Returns the reverted state."""
         for entry in reversed(self.stack):
             if entry.id == checkpoint_id:
                 idx = self.stack.index(entry)
@@ -73,19 +74,20 @@ class CheckpointStack:
 class CheckpointBuilder:
     def __init__(self, goal: str, ratio: float = 0.20):
         self.goal = goal
-        self.ratio = ratio
+        self.ratio = ratio  # fraction of tokens to keep (default 20%)
 
     def build(self, history: list[dict], trauma: str) -> str:
         """
-        Compress history into a checkpoint.
-        Never compresses anything already in trauma memory.
+        Compress history into a checkpoint string.
+        Never compresses or omits anything already in trauma.
+        Rolling: pass prior checkpoint + recent deltas instead of full raw history.
         """
         if not history:
             return ""
         full_text = "\n".join(
             f"{m['role'].upper()}: {m['content']}" for m in history
         )
-        compressed = compress(full_text, question=self.goal, ratio=self.ratio)
+        compressed = compress_ours(full_text, question=self.goal, ratio=self.ratio)
         return self._enforce_cap(compressed)
 
     def _enforce_cap(self, text: str) -> str:
@@ -99,39 +101,44 @@ class CheckpointBuilder:
 
 ## Update rezero/session.py
 
-### 1. Add imports at top
+Add these imports at the top:
 
 ```python
 from rezero.checkpoint import CheckpointBuilder, CheckpointStack
 ```
 
-### 2. Add to `__init__`
+Add to `__init__`:
 
 ```python
-self.checkpoint_builder = CheckpointBuilder(goal=goal, ratio=ratio)
-self.checkpoint_stack = CheckpointStack()
+self.checkpoint_builder = CheckpointBuilder(goal=goal, ratio=0.20)
+self.stack = CheckpointStack()
+self.K = 3  # rebuild checkpoint every K turns (overridden by Echidna in Step 5)
 ```
 
-Remove `self.checkpoint: str = ""` — the stack replaces it.
-
-### 3. Update `_get_checkpoint`
+Replace `_get_checkpoint` with:
 
 ```python
 def _get_checkpoint(self) -> str:
-    """Pure read — no side effects. Echidna drives all checkpoint creation."""
-    return self.checkpoint_stack.current()
+    # rebuild on schedule (Echidna overrides this in Step 5)
+    if self.turns_since_checkpoint >= self.K or not self.stack.current():
+        new_cp = self.checkpoint_builder.build(
+            self.history, self.trauma_extractor.get()
+        )
+        self.stack.push(new_cp, self.turn_count, reason="scheduled")
+        self.turns_since_checkpoint = 0
+    return self.stack.current()
 ```
 
-### 4. Add public revert method (already stubbed in Step 3 — ensure it works)
+Add public revert method to `ReZeroSession`:
 
 ```python
 def revert_to(self, checkpoint_id: int) -> None:
     """User-initiated revert. Trauma memory is NOT reverted."""
-    self.checkpoint_stack.revert_to(checkpoint_id)
+    self.stack.revert_to(checkpoint_id)
     self.turns_since_checkpoint = 0
 
 def list_checkpoints(self) -> list[int]:
-    return self.checkpoint_stack.list_ids()
+    return self.stack.list_ids()
 ```
 
 ---
@@ -140,15 +147,15 @@ def list_checkpoints(self) -> list[int]:
 
 ```python
 from rezero.checkpoint import CheckpointBuilder, CheckpointStack
-from engine.tokens import count_tokens
+from act1.tokens import count_tokens
 
 def test_checkpoint_under_cap():
     builder = CheckpointBuilder(goal="Find the founder")
     history = [
-        {"role": "user",      "content": "Tell me about Alice and Tech Corp"},
-        {"role": "assistant", "content": "Alice founded Tech Corp in 2010 and serves as CEO"},
+        {"role": "user",      "content": "Tell me about Alice and TechCorp"},
+        {"role": "assistant", "content": "Alice founded TechCorp in 2010 and serves as CEO"},
     ]
-    cp = builder.build(history, trauma="Alice Tech Corp")
+    cp = builder.build(history, trauma="Alice TechCorp")
     assert count_tokens(cp) <= 150
 
 def test_stack_push_and_current():
@@ -160,8 +167,8 @@ def test_stack_push_and_current():
 def test_stack_revert():
     stack = CheckpointStack()
     e1 = stack.push("state one",   turn=1)
-    _  = stack.push("state two",   turn=2)
-    _  = stack.push("state three", turn=3)
+    _   = stack.push("state two",   turn=2)
+    _   = stack.push("state three", turn=3)
     reverted = stack.revert_to(e1.id)
     assert reverted == "state one"
     assert stack.current() == "state one"
@@ -185,12 +192,13 @@ def test_stack_revert_unknown_id_raises():
 def test_session_revert_preserves_trauma():
     from rezero.session import ReZeroSession
     s = ReZeroSession(goal="Find Alice the founder")
-    s.add_turn("Alice founded Tech Corp", "Correct, Alice is the founder")
+    s.add_turn("Alice founded TechCorp", "Correct, Alice is the founder")
     s.add_turn("What did Bob do?", "Bob joined later")
     trauma_before = s.trauma_extractor.get()
     ids = s.list_checkpoints()
     if ids:
         s.revert_to(ids[0])
+    # trauma must survive revert
     assert s.trauma_extractor.get() == trauma_before
 ```
 
@@ -207,5 +215,5 @@ pytest tests/test_checkpoint.py -v
 ## Done when
 
 - All 6 tests pass
-- `ReZeroSession` produces a non-empty `[CHECKPOINT]` section after enough turns
-- Revert works and trauma is preserved
+- `ReZeroSession` now produces a non-empty `[CHECKPOINT]` section after 3 turns
+- User-initiated revert works and trauma is preserved

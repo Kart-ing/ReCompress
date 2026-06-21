@@ -1,19 +1,19 @@
 # Step 6 — Context Builder & Full Pipeline Integration
 
-> **Goal:** Build `rezero/context_builder.py`. Wire all components into `ReZeroSession`. Verify token count stays flat at ≤300 regardless of conversation length.
+> **Goal:** Build `rezero/context_builder.py`. Wire all components together. Run a full 15-turn scripted conversation and verify token count stays flat at ≤300 the entire time.
 
 ---
 
 ## What to build
 
-`rezero/context_builder.py` — then update `rezero/session.py`
+`rezero/context_builder.py` — then update `rezero/session.py` to use it
 
 ---
 
 ## rezero/context_builder.py
 
 ```python
-from engine.tokens import count_tokens
+from act1.tokens import count_tokens
 
 TRAUMA_CAP     = 50
 CHECKPOINT_CAP = 150
@@ -23,7 +23,7 @@ TOTAL_CAP      = 300
 class ContextBuilder:
     def build(self, trauma: str, checkpoint: str, delta: str) -> str:
         """
-        Assemble final prompt. Enforces all hard caps.
+        Assemble the final prompt. Enforces all hard caps.
         Trim order if total exceeds 300: checkpoint first, then trauma.
         """
         trauma     = self._enforce(trauma,     TRAUMA_CAP)
@@ -32,6 +32,7 @@ class ContextBuilder:
 
         prompt = self._assemble(trauma, checkpoint, delta)
 
+        # enforce total — trim checkpoint first
         while count_tokens(prompt) > TOTAL_CAP:
             words = checkpoint.split()
             if not words:
@@ -67,7 +68,7 @@ from rezero.context_builder import ContextBuilder
 self.context_builder = ContextBuilder()
 ```
 
-### 3. Replace `prompt_for_solver`
+### 3. Replace `prompt_for_solver` with this exact version
 
 ```python
 def prompt_for_solver(self) -> str:
@@ -78,22 +79,28 @@ def prompt_for_solver(self) -> str:
     )
 ```
 
-### 4. Remove from session.py
+### 4. REMOVE these methods from session.py — ContextBuilder now owns them
 
-Delete `_assemble` — `ContextBuilder` owns it now.
-Keep `_enforce` and `_get_delta` — still used internally.
+Delete `_assemble` and the inline cap loop that was in the old `prompt_for_solver`. Keep `_enforce` and `_get_delta` — they are still used internally.
+
+> **FIX:** Keeping `_enforce` in both session and ContextBuilder is fine — they serve different roles. Session uses `_enforce` in `_get_delta`. ContextBuilder uses it in `build`. Do NOT delete `_enforce` from session.
+
+The final `prompt_for_solver` must be exactly the 5-line version above — no inline loop, no `_assemble` call, no direct cap enforcement. All of that lives in ContextBuilder now.
 
 ---
 
 ## Tests — `tests/test_budget.py`
 
+> **FIX:** Use `pathlib` to load the scripted convo inside each test function, not at module level. This prevents `FileNotFoundError` when pytest is run from a different working directory.
+
 ```python
 import json
 from pathlib import Path
 from rezero.session import ReZeroSession
-from engine.tokens import count_tokens
+from act1.tokens import count_tokens
 
 def _load_convo():
+    """Load scripted convo relative to project root, robust to cwd."""
     candidates = [
         Path("demo/scripted_convo.jsonl"),
         Path("../demo/scripted_convo.jsonl"),
@@ -102,7 +109,10 @@ def _load_convo():
     for p in candidates:
         if p.exists():
             return [json.loads(l) for l in p.read_text().splitlines() if l.strip()]
-    raise FileNotFoundError("scripted_convo.jsonl not found")
+    raise FileNotFoundError("scripted_convo.jsonl not found — run from project root")
+
+def _goal():
+    return _load_convo()[0].get("goal", "Research task")
 
 def test_token_count_never_exceeds_300():
     convo = _load_convo()
@@ -120,12 +130,10 @@ def test_token_count_is_flat():
     for turn in convo:
         s.add_turn(turn["user"], turn["assistant"])
         counts.append(s.token_count())
-    n = len(counts)
-    quarter = max(1, n // 4)
-    early_avg = sum(counts[:quarter]) / quarter
-    late_avg  = sum(counts[-quarter:]) / quarter
+    early_avg = sum(counts[:5]) / 5
+    late_avg  = sum(counts[10:]) / max(len(counts[10:]), 1)
     assert abs(late_avg - early_avg) < 80, \
-        f"Not flat — early: {early_avg:.0f}, late: {late_avg:.0f}"
+        f"Not flat enough — early avg: {early_avg:.0f}, late avg: {late_avg:.0f}"
 
 def test_trauma_section_always_present():
     convo = _load_convo()
@@ -134,7 +142,7 @@ def test_trauma_section_always_present():
         s.add_turn(turn["user"], turn["assistant"])
     prompt = s.prompt_for_solver()
     trauma_section = prompt.split("[CHECKPOINT]")[0].replace("[TRAUMA]", "").strip()
-    assert len(trauma_section) > 0
+    assert len(trauma_section) > 0, "Trauma section is empty"
 
 def test_all_three_sections_present_every_turn():
     convo = _load_convo()
@@ -156,12 +164,14 @@ def test_delta_always_contains_latest_turn():
     prompt = s.prompt_for_solver()
     delta_section = prompt.split("[DELTA]")[1].strip()
     last_words = last["user"].split()[:3]
-    assert any(w in delta_section for w in last_words)
+    assert any(w in delta_section for w in last_words), \
+        f"Delta missing last turn content. Delta: {delta_section}"
 
 def test_context_builder_owns_assembly():
+    # FIX: verify session no longer has _assemble — ContextBuilder owns it
     s = ReZeroSession(goal="Test", use_llm=False)
     assert not hasattr(s, "_assemble"), \
-        "_assemble should be in ContextBuilder, not session"
+        "_assemble should be removed from session — ContextBuilder owns assembly"
 ```
 
 ---
@@ -171,6 +181,8 @@ def test_context_builder_owns_assembly():
 ```bash
 pytest tests/test_budget.py -v
 ```
+
+---
 
 ## Full pipeline smoke test
 
@@ -189,10 +201,12 @@ for i, turn in enumerate(convo):
 EOF
 ```
 
+Expected output: token column stays ≤300 all 15 rows.
+
 ---
 
 ## Done when
 
-- All 6 tests pass
-- Smoke test: token column stays ≤300 for every row
-- `session.py` has no `_assemble` method
+- All 6 tests pass including `test_context_builder_owns_assembly`
+- Smoke test prints flat token counts across all 15 turns
+- `session.py` has no `_assemble` method — it lives only in `ContextBuilder`

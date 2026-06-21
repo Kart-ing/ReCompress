@@ -2,7 +2,7 @@ from rezero.checkpoint import CheckpointBuilder, CheckpointStack
 from engine.tokens import count_tokens
 
 def test_checkpoint_under_cap():
-    builder = CheckpointBuilder(goal="Find the founder")
+    builder = CheckpointBuilder(goal="Find the founder", use_llm=False)
     history = [
         {"role": "user",      "content": "Tell me about Alice and Tech Corp"},
         {"role": "assistant", "content": "Alice founded Tech Corp in 2010 and serves as CEO"},
