@@ -10,14 +10,14 @@ from __future__ import annotations
 import os
 import sys
 
-# make BOTH import roots available: repo root (src.*) and ACTII (engine.*, rezero.*)
+# make BOTH import roots available: repo root (recompress.*) and ACTII (engine.*, rezero.*)
 _REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 _ACTII = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 for p in (_REPO, _ACTII):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-from src.distill.infer import app, Compressor  # the Act-1 Modal app
+from recompress.distill.infer import app, Compressor  # the Act-1 Modal app
 
 
 @app.local_entrypoint()

@@ -12,7 +12,7 @@ Signature matches engine.compressor.compress exactly, so it's a drop-in:
     compress_backend(text, question, ratio, use_llm=True, exclude="", backend="deepseek")
 
 The "distilled" path lazily imports the Act-1 Modal app from the repo root, so Act 2's
-normal (deepseek/naive) runs need neither modal nor the src/ package on the path.
+normal (deepseek/naive) runs need neither modal nor the recompress/ package on the path.
 """
 from __future__ import annotations
 import os
@@ -41,12 +41,12 @@ def _truncate(text: str, max_tokens: int) -> str:
 
 
 def _get_distilled():
-    """Lazy-load the Act-1 Modal Compressor class (from repo-root src/distill/infer.py)."""
+    """Lazy-load the Act-1 Modal Compressor class (from repo-root recompress/distill/infer.py)."""
     global _distilled_cls
     if _distilled_cls is None:
         if _REPO_ROOT not in sys.path:
             sys.path.insert(0, _REPO_ROOT)
-        from src.distill.infer import Compressor
+        from recompress.distill.infer import Compressor
         _distilled_cls = Compressor
     return _distilled_cls
 
@@ -56,7 +56,7 @@ def _get_bear():
     if _bear_fn is None:
         if _REPO_ROOT not in sys.path:
             sys.path.insert(0, _REPO_ROOT)
-        from src.act1.bear import compress_bear
+        from recompress.act1.bear import compress_bear
         _bear_fn = compress_bear
     return _bear_fn
 

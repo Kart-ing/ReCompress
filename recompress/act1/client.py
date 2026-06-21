@@ -1,7 +1,7 @@
 """Shared API client setup with retries + long timeouts."""
 from __future__ import annotations
 from openai import OpenAI
-from src.config import CFG
+from recompress.config import CFG
 
 _client = OpenAI(
     api_key=CFG.deepseek_api_key,

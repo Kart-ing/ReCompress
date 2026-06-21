@@ -11,8 +11,8 @@ import threading
 import time
 
 from thetokencompany import TheTokenCompany
-from src.config import CFG
-from src.act1.tokens import count_tokens, truncate_to_tokens
+from recompress.config import CFG
+from recompress.act1.tokens import count_tokens, truncate_to_tokens
 
 _client = TheTokenCompany(api_key=CFG.bear_api_key) if CFG.bear_api_key else None
 

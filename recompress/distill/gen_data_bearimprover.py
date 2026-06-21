@@ -24,13 +24,13 @@ import threading
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from src.act1.client import get_client
-from src.config import CFG
-from src.act1.data import load_hotpotqa, context_to_text
-from src.act1.tokens import count_tokens, truncate_to_tokens
-from src.act1.bear import compress_bear
-from src.act1.solve import solve
-from src.act1.metrics import qa_f1
+from recompress.act1.client import get_client
+from recompress.config import CFG
+from recompress.act1.data import load_hotpotqa, context_to_text
+from recompress.act1.tokens import count_tokens, truncate_to_tokens
+from recompress.act1.bear import compress_bear
+from recompress.act1.solve import solve
+from recompress.act1.metrics import qa_f1
 
 MAX_WORKERS = 96  # bumped from 8: DeepSeek allows ~2500 concurrent
 KEEP_THRESHOLD = 0.5   # keep a pair only if the answer survives bear with F1 >= this

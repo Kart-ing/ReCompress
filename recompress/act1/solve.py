@@ -5,8 +5,8 @@ from __future__ import annotations
 import time
 
 from openai import APITimeoutError, APIConnectionError, RateLimitError
-from src.act1.client import get_client
-from src.config import CFG
+from recompress.act1.client import get_client
+from recompress.config import CFG
 
 _SYSTEM = (
     "You are a strict QA agent. Answer the question using ONLY the provided context. "

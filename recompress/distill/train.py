@@ -1,7 +1,7 @@
 """Modal app: LoRA fine-tune Qwen2.5-1.5B-Instruct on query-aware compression pairs.
 Uses Unsloth on an H100. Teacher data = DeepSeek API outputs (gen_data.py).
 
-Run: modal run src/distill/train.py --data data/distill/train.jsonl
+Run: modal run recompress/distill/train.py --data data/distill/train.jsonl
 """
 from __future__ import annotations
 import modal

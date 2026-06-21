@@ -13,7 +13,7 @@ Benchmarks:
 from __future__ import annotations
 import random
 from datasets import load_dataset
-from src.config import CFG
+from recompress.config import CFG
 
 
 def _seeded_take(ds_iter, pool_size: int, n: int, seed: int) -> list:

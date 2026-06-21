@@ -12,11 +12,11 @@ import time
 import statistics
 from pathlib import Path
 
-from src.config import CFG
-from src.act1.data import load_hotpotqa, context_to_text
-from src.act1.tokens import count_tokens
-from src.act1.bear import compress_bear
-from src.distill.infer import app as infer_app, Compressor
+from recompress.config import CFG
+from recompress.act1.data import load_hotpotqa, context_to_text
+from recompress.act1.tokens import count_tokens
+from recompress.act1.bear import compress_bear
+from recompress.distill.infer import app as infer_app, Compressor
 
 
 def _summarize(latencies, tin, tout):

@@ -12,13 +12,13 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Callable
 
-from src.config import CFG
-from src.act1.data import load_hotpotqa, context_to_text
-from src.act1.tokens import count_tokens
-from src.act1.compress import compress_ours
-from src.act1.bear import compress_bear
-from src.act1.solve import solve
-from src.act1.metrics import qa_f1, bootstrap_ci
+from recompress.config import CFG
+from recompress.act1.data import load_hotpotqa, context_to_text
+from recompress.act1.tokens import count_tokens
+from recompress.act1.compress import compress_ours
+from recompress.act1.bear import compress_bear
+from recompress.act1.solve import solve
+from recompress.act1.metrics import qa_f1, bootstrap_ci
 
 
 def bar_none(text: str, q: str, ratio: float) -> str:

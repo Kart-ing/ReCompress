@@ -5,7 +5,7 @@ Uses streaming to avoid downloading the full validation split.
 from __future__ import annotations
 import random
 from datasets import load_dataset
-from src.config import CFG
+from recompress.config import CFG
 
 
 def load_hotpotqa(n: int = CFG.n_instances, seed: int = CFG.seed) -> list[dict]:

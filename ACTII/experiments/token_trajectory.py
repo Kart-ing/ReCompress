@@ -17,7 +17,7 @@ for p in (_REPO, _ACTII):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-from src.distill.infer import app  # Act-1 Modal app
+from recompress.distill.infer import app  # Act-1 Modal app
 
 
 @app.local_entrypoint()

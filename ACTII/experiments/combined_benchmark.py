@@ -24,7 +24,7 @@ for p in (_REPO, _ACTII):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-from src.distill.infer import app  # Act-1 Modal app (gives us the Compressor on the volume)
+from recompress.distill.infer import app  # Act-1 Modal app (gives us the Compressor on the volume)
 
 
 def _build_convo(sample, max_turns=6):

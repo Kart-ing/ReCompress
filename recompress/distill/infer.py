@@ -21,11 +21,11 @@ IMAGE = (
         "transformers",
         "accelerate",
         "bitsandbytes",
-        "tiktoken",   # src.act1.tokens.count_tokens uses tiktoken at runtime
+        "tiktoken",   # recompress.act1.tokens.count_tokens uses tiktoken at runtime
     )
-    # Batch methods import src.act1.tokens at runtime, so the local `src` package
-    # must be available inside the container (modal>=1.0 no longer auto-mounts).
-    .add_local_python_source("src")
+    # Batch methods import recompress.act1.tokens at runtime, so the local `recompress`
+    # package must be available inside the container (modal>=1.0 no longer auto-mounts).
+    .add_local_python_source("recompress")
 )
 
 app = modal.App(APP_NAME + "-infer", image=IMAGE)
@@ -60,7 +60,7 @@ class Compressor:
         FastLanguageModel.for_inference(self.model)
 
     def _compress_one(self, text: str, question: str, ratio: float) -> str:
-        from src.act1.tokens import count_tokens, truncate_to_tokens
+        from recompress.act1.tokens import count_tokens, truncate_to_tokens
 
         messages = [
             {"role": "system", "content": _SYSTEM_PROMPT},
@@ -95,7 +95,7 @@ class Compressor:
         """Like compress_batch but returns per-item latency for the latency benchmark.
         Model load is excluded (it happened in @enter), so latency_s is pure generation."""
         import time as _t
-        from src.act1.tokens import count_tokens
+        from recompress.act1.tokens import count_tokens
         out = []
         for i, it in enumerate(items):
             t0 = _t.perf_counter()
@@ -110,8 +110,8 @@ class Compressor:
 @app.local_entrypoint()
 def test():
     """Quick test of the distilled model on 2 HotpotQA instances (one batched call)."""
-    from src.act1.data import load_hotpotqa, context_to_text
-    from src.act1.tokens import count_tokens
+    from recompress.act1.data import load_hotpotqa, context_to_text
+    from recompress.act1.tokens import count_tokens
 
     insts = load_hotpotqa(n=2)
     items = [{"text": context_to_text(i), "question": i["question"]} for i in insts]

@@ -16,14 +16,14 @@ from pathlib import Path
 
 import modal
 
-from src.config import CFG
-from src.act1.data import context_to_text
-from src.act1.benchmarks import load_benchmark
-from src.act1.tokens import count_tokens
-from src.act1.bear import compress_bear
-from src.act1.solve import solve
-from src.act1.metrics import qa_f1, bootstrap_ci
-from src.distill.infer import app as infer_app, Compressor
+from recompress.config import CFG
+from recompress.act1.data import context_to_text
+from recompress.act1.benchmarks import load_benchmark
+from recompress.act1.tokens import count_tokens
+from recompress.act1.bear import compress_bear
+from recompress.act1.solve import solve
+from recompress.act1.metrics import qa_f1, bootstrap_ci
+from recompress.distill.infer import app as infer_app, Compressor
 
 
 def _solve_and_score(instances, compressed_list):

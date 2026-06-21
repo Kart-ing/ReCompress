@@ -26,12 +26,12 @@ import threading
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from src.act1.client import get_client
-from src.config import CFG
-from src.act1.data import load_hotpotqa, context_to_text
-from src.act1.tokens import count_tokens, truncate_to_tokens
-from src.act1.solve import solve
-from src.act1.metrics import qa_f1
+from recompress.act1.client import get_client
+from recompress.config import CFG
+from recompress.act1.data import load_hotpotqa, context_to_text
+from recompress.act1.tokens import count_tokens, truncate_to_tokens
+from recompress.act1.solve import solve
+from recompress.act1.metrics import qa_f1
 
 MAX_WORKERS = 96   # DeepSeek V4 Flash allows ~2500 concurrent; 8 was a needless bottleneck.
                    # 96 threads keeps ThreadPoolExecutor efficient (async needed beyond ~128).

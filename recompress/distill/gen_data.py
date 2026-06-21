@@ -14,9 +14,9 @@ import threading
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from src.act1.data import load_hotpotqa, context_to_text
-from src.act1.compress import compress_ours
-from src.act1.tokens import count_tokens
+from recompress.act1.data import load_hotpotqa, context_to_text
+from recompress.act1.compress import compress_ours
+from recompress.act1.tokens import count_tokens
 
 MAX_WORKERS = 96  # bumped from 8: DeepSeek allows ~2500 concurrent
 

@@ -4,9 +4,9 @@ from __future__ import annotations
 import time
 
 from openai import APITimeoutError, APIConnectionError, RateLimitError
-from src.act1.client import get_client
-from src.config import CFG
-from src.act1.tokens import count_tokens, truncate_to_tokens
+from recompress.act1.client import get_client
+from recompress.config import CFG
+from recompress.act1.tokens import count_tokens, truncate_to_tokens
 
 _TRANSIENT = (APITimeoutError, APIConnectionError, RateLimitError)
 
