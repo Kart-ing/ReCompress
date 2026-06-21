@@ -18,27 +18,29 @@
     body, .reveal { background: #0b0e14; }
     .reveal h1, .reveal h2, .reveal h3 { color: #e6e9ef; text-transform: none; letter-spacing: -0.5px; font-weight: 700; }
     .reveal h1 { font-size: 2.0em; line-height: 1.08; }
-    .reveal h2 { font-size: 1.5em; margin-bottom: 0.3em; }
-    .reveal p, .reveal li { color: #cdd3df; font-size: 0.78em; line-height: 1.5; }
+    .reveal h2 { font-size: 1.45em; margin-bottom: 0.3em; }
+    .reveal p, .reveal li { color: #cdd3df; font-size: 0.8em; line-height: 1.5; }
     .reveal strong { color: #fff; }
     .reveal .hl { color: var(--ours); }
     .reveal .acc { color: var(--accent); }
     .reveal .good { color: var(--good); }
     .reveal .bear { color: var(--bear); }
     .reveal .kicker { font-family: var(--mono); font-size: 0.5em; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 0.4em; }
+    .reveal .timecode { font-family: var(--mono); font-size: 0.42em; color: #3a4254; letter-spacing: 1px; }
     .reveal .mono { font-family: var(--mono); }
     .reveal .muted { color: var(--muted); }
-    .reveal section img { background: #fff; border-radius: 10px; padding: 8px; max-height: 460px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+    .reveal section img { background: #fff; border-radius: 10px; padding: 8px; max-height: 440px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
     .reveal .center { text-align: center; }
-    .bignums { display: flex; gap: 28px; justify-content: center; margin: 30px 0; flex-wrap: wrap; }
-    .bignum { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 26px 32px; min-width: 220px; text-align: center; }
-    .bignum .n { font-family: var(--mono); font-size: 2.4em; font-weight: 700; color: var(--ours); line-height: 1; }
-    .bignum .l { color: var(--muted); font-size: 0.6em; margin-top: 10px; }
-    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; }
+    .bignums { display: flex; gap: 24px; justify-content: center; margin: 26px 0; flex-wrap: wrap; }
+    .bignum { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px 28px; min-width: 200px; text-align: center; }
+    .bignum .n { font-family: var(--mono); font-size: 2.2em; font-weight: 700; color: var(--ours); line-height: 1; }
+    .bignum .l { color: var(--muted); font-size: 0.58em; margin-top: 9px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
+    .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; align-items: stretch; }
     .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; }
     .card.ours { border-left: 4px solid var(--ours); }
     .card.bear { border-left: 4px solid var(--bear); }
-    .reveal .footer-note { position: fixed; bottom: 14px; left: 22px; font-family: var(--mono); font-size: 12px; color: #3a4254; }
+    .card h3 { font-size: 0.82em; margin: 0 0 8px; }
     .reveal table { font-size: 0.62em; }
     .reveal table th { color: var(--accent); font-family: var(--mono); }
     .reveal table td, .reveal table th { border-color: var(--border); }
@@ -48,194 +50,196 @@
     .reveal .progress { color: var(--ours); }
     .cue { background: var(--panel); border: 2px dashed var(--accent); border-radius: 16px; padding: 40px; text-align: center; }
     .cue .url { font-family: var(--mono); font-size: 1.1em; color: var(--ours); margin-top: 16px; }
+    .divider { text-align:center; }
+    .divider h2 { color: var(--muted); font-size: 1.1em; }
   </style>
 </head>
 <body>
 <div class="reveal"><div class="slides">
 
-  <!-- 1. TITLE -->
+  <!-- ============ VIDEO SPINE (matches the 60s script) ============ -->
+
+  <!-- 1. TITLE (0:00) -->
   <section data-background-color="#0b0e14" class="center">
     <div class="kicker center">The Token Company Compression Challenge · UC Berkeley AI Hackathon 2026</div>
     <h1>Re<span class="hl">Compress</span></h1>
     <p style="font-size:0.95em; max-width:760px; margin:18px auto 0;">
-      Query-aware <span class="hl">rewriting</span> beats deletion —
-      at <span class="hl">8.5× fewer tokens</span>.<br/>
-      A 1.5B model, audited against itself.
+      Read the question first. Rewrite only what matters.<br/>
+      <span class="hl">8.5× fewer tokens</span> — from a 1.5B model that runs offline.
     </p>
-    <p class="muted mono" style="margin-top:34px; font-size:0.7em;">Parth Sanjay Kshirsagar · Kartikey Pandey</p>
+    <p class="muted mono" style="margin-top:30px; font-size:0.68em;">Parth Sanjay Kshirsagar · Kartikey Pandey</p>
   </section>
 
-  <!-- 2. PROBLEM -->
+  <!-- 2. PROBLEM (0:00–0:12) -->
   <section>
-    <div class="kicker">The problem</div>
-    <h2>Every token costs — and most of them are noise</h2>
-    <div class="two" style="margin-top:24px;">
+    <div class="timecode">0:00 – 0:12 · problem</div>
+    <h2>Every AI call rereads the whole history</h2>
+    <div class="two" style="margin-top:22px;">
       <div>
-        <p><strong>Single prompt (RAG):</strong> 10 passages retrieved, ~2 relevant.
-        Sending all 10 wastes <span class="acc">~80% of the budget</span> on distractors.</p>
-        <p><strong>Multi-turn:</strong> resending full history every turn makes cost grow
-        <span class="acc">O(n²)</span> — a 50-turn chat sends 100k+ tokens for ~5k of real info.</p>
+        <p><strong>Cost grows quadratically.</strong> A long conversation resends its entire
+        history every single turn.</p>
+        <p>And <strong>query-agnostic compression keeps the wrong passages</strong> — it can't
+        see which ones actually answer your question.</p>
       </div>
       <div class="card">
-        <p class="mono" style="font-size:0.8em; margin:0;">
-          context = <span class="muted">[passage 1] [passage 2] ...</span><br/>
-          &nbsp;&nbsp;<span class="bear">8 distractors</span> + <span class="good">2 that matter</span><br/><br/>
-          → the model has to find the needle,<br/>&nbsp;&nbsp;and you <span class="bear">pay for the hay</span>.
+        <p class="mono" style="font-size:0.78em; margin:0;">
+          turn 1: <span class="muted">[ctx]</span><br/>
+          turn 2: <span class="muted">[ctx][ctx]</span><br/>
+          turn 3: <span class="muted">[ctx][ctx][ctx]</span><br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;⋮ &nbsp; <span class="bear">O(n²) cost</span><br/><br/>
+          + you keep the <span class="bear">distractors</span>,<br/>&nbsp;&nbsp;not the answer.
         </p>
       </div>
     </div>
   </section>
 
-  <!-- 3. INSIGHT -->
+  <!-- 3. SOLUTION (0:12–0:28) -->
   <section>
-    <div class="kicker">The insight</div>
-    <h2>Deletion has a ceiling that rewriting doesn't</h2>
-    <div class="two" style="margin-top:18px;">
-      <div class="card bear">
-        <h3 style="font-size:0.9em; margin:0 0 8px;"><span class="bear">bear-1.1</span> — deletion</h3>
-        <p style="margin:0;">Deletes low-value tokens, char-for-char. <strong>Fast, verbatim, query-agnostic, cacheable.</strong> By design: "nothing is paraphrased or generated."</p>
+    <div class="timecode">0:12 – 0:28 · solution</div>
+    <h2>A model that reads the question, then rewrites</h2>
+    <div class="three" style="margin-top:20px;">
+      <div class="card ours">
+        <h3 class="hl">Query-aware rewrite</h3>
+        <p style="margin:0; font-size:0.78em;">Reads the question first, then rewrites only the relevant content.</p>
       </div>
       <div class="card ours">
-        <h3 style="font-size:0.9em; margin:0 0 8px;"><span class="hl">ReCompress</span> — rewriting</h3>
-        <p style="margin:0;">Reads the question, <strong>drops irrelevant passages</strong>, and <strong>rewrites</strong> the rest densely. The abstractive, query-aware regime deletion cedes.</p>
+        <h3 class="hl">1.5B, offline</h3>
+        <p style="margin:0; font-size:0.78em;">Qwen2.5-1.5B + LoRA. No API at inference — <span class="good">cents per call</span>.</p>
+      </div>
+      <div class="card ours">
+        <h3 class="hl">Three-tier memory</h3>
+        <p style="margin:0; font-size:0.78em;">Protected facts + checkpoint + delta keep multi-turn context <strong>flat</strong>, any length.</p>
       </div>
     </div>
-    <p class="center muted" style="margin-top:24px; font-size:0.8em;">
-      Not a competitor — the <span class="hl">complement</span>. We took up exactly where bear's design leaves off, and distilled it into a small model.
+    <p class="center muted" style="margin-top:24px; font-size:0.78em;">
+      The abstractive, query-aware regime that deletion-based compression cedes — packaged as a small model.
     </p>
   </section>
 
-  <!-- 4. WHAT WE BUILT -->
-  <section>
-    <div class="kicker">What we built</div>
-    <h2>One system, two acts</h2>
-    <div class="two" style="margin-top:20px;">
-      <div class="card">
-        <h3 style="font-size:0.85em; color:var(--ours); margin:0 0 8px;">Act 1 — single-shot</h3>
-        <p style="margin:0;">Query-aware compressor distilled from a DeepSeek teacher into
-        <strong>Qwen2.5-1.5B + LoRA</strong>. Runs offline, ~cents/call.</p>
-      </div>
-      <div class="card">
-        <h3 style="font-size:0.85em; color:var(--ours); margin:0 0 8px;">Act 2 — Re:Zero multi-turn</h3>
-        <p style="margin:0;">A flat ~300-token memory (protected facts + checkpoint + delta).
-        <strong>The Act 1 model compresses the checkpoints.</strong></p>
-      </div>
-    </div>
-    <p class="center mono muted" style="margin-top:26px; font-size:0.72em;">
-      DeepSeek teacher → 5k pairs → LoRA on a Modal H100 → eval vs bear → wire into Re:Zero. <span class="good">~$10 total.</span>
-    </p>
-  </section>
-
-  <!-- 5. HEADLINE -->
+  <!-- 4. RESULTS (0:28–0:48) -->
   <section data-background-color="#0b0e14" class="center">
-    <div class="kicker center">The headline</div>
-    <h2 class="center" style="margin-bottom:10px;">A 1.5B model beats the deletion baseline</h2>
+    <div class="timecode center">0:28 – 0:48 · results</div>
     <div class="bignums">
-      <div class="bignum"><div class="n">+56%</div><div class="l">F1 on HotpotQA<br/>(CI excludes 0)</div></div>
-      <div class="bignum"><div class="n">8.5×</div><div class="l">fewer tokens<br/>(48 vs 409)</div></div>
-      <div class="bignum"><div class="n">~$10</div><div class="l">total compute<br/>to train</div></div>
+      <div class="bignum"><div class="n">+56%</div><div class="l">vs bear-1.1 on HotpotQA</div></div>
+      <div class="bignum"><div class="n">8.5×</div><div class="l">fewer tokens (48 vs 409)</div></div>
+      <div class="bignum"><div class="n">~$10</div><div class="l">total compute</div></div>
     </div>
-    <p class="center muted" style="font-size:0.78em;">More accurate <em>while emitting far fewer tokens</em> — not a matched-output tie.</p>
+    <div class="two" style="margin-top:6px; font-size:0.92em;">
+      <p class="center"><span class="good">Generalizes zero-shot</span> to a benchmark we never trained on (2Wiki, +46%).</p>
+      <p class="center">Multi-turn context holds at <span class="hl">184 tokens</span> while naive hits <span class="bear">1,482</span> by turn 12.</p>
+    </div>
+    <p class="center muted mono" style="margin-top:18px; font-size:0.66em;">Paper on Zenodo · DOI 10.5281/zenodo.20786357</p>
   </section>
 
-  <!-- 6. BAR CHART -->
+  <!-- 5. BYE (0:48–0:60) -->
+  <section data-background-color="#0b0e14" class="center">
+    <div class="timecode center">0:48 – 1:00 · bye</div>
+    <h2 class="center" style="font-size:1.7em; margin-top:20px;">A small open model carries a frontier compressor's<br/><span class="hl">query-aware edge</span> — offline, for ~$10.</h2>
+    <p class="center mono" style="font-size:1.2em; color:var(--ours); margin-top:34px;">github.com/Kart-ing/ReCompress</p>
+    <p class="center muted" style="margin-top:24px; font-size:0.85em;">Thank you.</p>
+  </section>
+
+  <!-- ============ LIVE-DAY APPENDIX (deeper evidence for Q&A) ============ -->
+
+  <section class="divider center" data-background-color="#0b0e14">
+    <div class="kicker center">Appendix</div>
+    <h2>Deeper evidence — for live Q&A</h2>
+    <p class="muted center" style="font-size:0.8em;">benchmarks · cross-solver audit · honesty · crossover · how it's cheap · live demo</p>
+  </section>
+
+  <!-- A1. BAR CHART -->
   <section class="center">
     <div class="kicker center">Results · across benchmarks</div>
     <h2 class="center">Significant where it's hardest</h2>
     <img src="img/cross_benchmark_bars.png" alt="per-benchmark bars" />
-    <p class="center" style="font-size:0.68em; margin-top:14px;">
+    <p class="center" style="font-size:0.66em; margin-top:12px;">
       <span class="pill sig">HotpotQA ✓</span> <span class="pill sig">2Wiki ✓</span>
       <span class="pill">MuSiQue n.s.</span> <span class="pill">SQuAD n.s.</span>
       &nbsp; — significant on multi-hop-with-distractors; honest about the rest.
     </p>
   </section>
 
-  <!-- 7. CROSS-SOLVER -->
+  <!-- A2. CROSS-SOLVER -->
   <section class="center">
     <div class="kicker center">We stress-tested our own headline</div>
     <h2 class="center">The win survives an independent judge</h2>
-    <img src="img/cross_solver_bars.png" alt="cross-solver" style="max-height:380px;" />
-    <p class="center" style="font-size:0.72em; margin-top:14px;">
-      Teacher + solver were both DeepSeek — a reviewer's first attack. Re-scored with
-      <span class="hl">Claude Sonnet</span> (independent of both): Δ <strong>+0.288</strong> vs
-      +0.285 in-family. <span class="good">Not a same-family artifact.</span>
+    <img src="img/cross_solver_bars.png" alt="cross-solver" style="max-height:360px;" />
+    <p class="center" style="font-size:0.72em; margin-top:12px;">
+      Teacher + solver were both DeepSeek. Re-scored with <span class="hl">Claude Sonnet</span>
+      (independent): Δ <strong>+0.288</strong> vs +0.285 in-family. <span class="good">Not a same-family artifact.</span>
     </p>
   </section>
 
-  <!-- 8. HONESTY (differentiator) -->
+  <!-- A3. HONESTY -->
   <section class="center">
-    <div class="kicker center">The differentiator · we audited ourselves</div>
-    <h2 class="center">Much of the win is span-selection — we measured it</h2>
-    <img src="img/mask_answer_bars.png" alt="mask the answer" style="max-height:360px;" />
-    <p class="center" style="font-size:0.72em; margin-top:12px;">
+    <div class="kicker center">We audited ourselves</div>
+    <h2 class="center">Much of the win is span-selection — measured</h2>
+    <img src="img/mask_answer_bars.png" alt="mask the answer" style="max-height:340px;" />
+    <p class="center" style="font-size:0.72em; margin-top:10px;">
       Redact the gold answer span and re-solve: <span class="bear">our F1 drops 65%</span> vs bear's 31%.
-      So the edge is largely "keep the answer-bearing span at a 3.5% budget where deletion truncates it" —
-      <strong>better selection, not better reasoning.</strong> Reported, not hidden.
+      Better selection, not better reasoning — and we report it.
     </p>
   </section>
 
-  <!-- 9. CROSSOVER + ECHIDNA -->
+  <!-- A4. CROSSOVER -->
   <section class="center">
-    <div class="kicker center">Act 2 · multi-turn, and a self-correction</div>
-    <h2 class="center">Flat context — once we cut our own dead weight</h2>
-    <img src="img/crossover.png" alt="crossover" style="max-height:380px;" />
-    <p class="center" style="font-size:0.7em; margin-top:10px;">
-      Counting overhead, our LLM checkpoint-trigger ("Echidna") was <span class="bear">98% useless</span>.
-      Replaced with a free rule → <span class="good">4.2× cheaper than uncached naive by 20 turns.</span>
-      (Honest: never beats a KV-cached agent on raw tokens.)
+    <div class="kicker center">Act 2 · multi-turn + a self-correction</div>
+    <h2 class="center">Flat context — after cutting our own dead weight</h2>
+    <img src="img/crossover.png" alt="crossover" style="max-height:360px;" />
+    <p class="center" style="font-size:0.7em; margin-top:8px;">
+      Our LLM checkpoint-trigger was <span class="bear">98% useless</span>; a free rule made it
+      <span class="good">4.2× cheaper than uncached naive by 20 turns</span>. (Honest: never beats a KV-cached agent on raw tokens.)
     </p>
   </section>
 
-  <!-- 10. HOW IT'S CHEAP -->
+  <!-- A5. HOW IT'S CHEAP -->
   <section class="center">
-    <div class="kicker center">How it's cheap · the distillation story</div>
+    <div class="kicker center">How it's cheap · distillation</div>
     <h2 class="center">Three attempts: wash → overfit → win</h2>
-    <img src="img/distill_trajectory.png" alt="distillation trajectory" style="max-height:380px;" />
-    <p class="center" style="font-size:0.72em; margin-top:12px;">
-      v1 under-data (n.s.) → v2 overfit → <span class="good">v3: regularized, early-stopped, significant.</span>
-      We report all three. The 1.5B recovers ~64% of the frontier teacher's margin, offline.
+    <img src="img/distill_trajectory.png" alt="distillation trajectory" style="max-height:360px;" />
+    <p class="center" style="font-size:0.72em; margin-top:10px;">
+      v1 under-data → v2 overfit → <span class="good">v3 significant.</span> All three reported.
+      The 1.5B recovers ~64% of the frontier teacher's margin, offline.
     </p>
   </section>
 
-  <!-- 11. LIVE DEMO CUE -->
+  <!-- A6. LIVE DEMO CUE -->
   <section data-background-color="#0b0e14" class="center">
     <div class="kicker center">Live demo</div>
     <div class="cue">
       <h2 style="margin:0;">→ Switch to the interactive demo</h2>
-      <p class="muted" style="margin:14px 0 0;">Toggle the cross-solver judge · drag the crossover slider · redact the answer span live</p>
+      <p class="muted" style="margin:14px 0 0;">cross-solver toggle · crossover slider · redact the answer live</p>
       <div class="url">demo-eight-olive-97.vercel.app</div>
     </div>
-    <p class="muted mono" style="margin-top:20px; font-size:0.62em;">(next slide embeds it inline as a fallback)</p>
   </section>
 
-  <!-- 12. EMBEDDED DEMO (fallback for video / no-tab-switch) -->
+  <!-- A7. EMBEDDED DEMO -->
   <section data-background-color="#0b0e14">
     <iframe class="demo-frame" src="https://demo-eight-olive-97.vercel.app" title="ReCompress live demo"></iframe>
-    <p class="center muted mono" style="font-size:0.6em; margin-top:8px;">live site embedded — interact directly, or open demo-eight-olive-97.vercel.app full-screen</p>
+    <p class="center muted mono" style="font-size:0.58em; margin-top:8px;">live site embedded — or open demo-eight-olive-97.vercel.app full-screen</p>
   </section>
 
-  <!-- 13. LIMITATIONS -->
+  <!-- A8. LIMITATIONS -->
   <section>
     <div class="kicker">Honest limitations</div>
     <h2>What we did <em>not</em> prove</h2>
-    <ul style="margin-top:18px;">
+    <ul style="margin-top:16px;">
       <li>Significant on 2 of 4 benchmarks — MuSiQue & SQuAD are directional (n=50).</li>
       <li>Much of the F1 is the answer span itself (mask test) — selection, not reasoning.</li>
       <li>Multi-turn beats <em>uncached</em> naive only; a KV-cached agent wins on raw tokens.</li>
       <li>The student is autoregressive — ~1.8× bear's latency (for 9.4× fewer tokens).</li>
     </ul>
-    <p class="muted center" style="margin-top:20px; font-size:0.78em;">Reporting our own negative results is the thing we'd protect most.</p>
   </section>
 
-  <!-- 14. CLOSE -->
+  <!-- A9. LINKS -->
   <section data-background-color="#0b0e14" class="center">
-    <h2 class="center" style="font-size:1.7em;">A small open model can carry a frontier compressor's<br/><span class="hl">query-aware edge</span> — offline, for ~$10.</h2>
-    <div class="bignums" style="margin-top:30px;">
-      <div class="bignum" style="min-width:auto;"><div class="l" style="font-size:0.7em;">Paper (Zenodo DOI)</div><div class="mono" style="color:var(--ours); font-size:0.7em; margin-top:6px;">10.5281/zenodo.20786357</div></div>
-      <div class="bignum" style="min-width:auto;"><div class="l" style="font-size:0.7em;">Demo</div><div class="mono" style="color:var(--ours); font-size:0.7em; margin-top:6px;">demo-eight-olive-97.vercel.app</div></div>
-      <div class="bignum" style="min-width:auto;"><div class="l" style="font-size:0.7em;">Code</div><div class="mono" style="color:var(--ours); font-size:0.7em; margin-top:6px;">github.com/Kart-ing/ReCompress</div></div>
+    <h2 class="center" style="font-size:1.4em;">Everything's open</h2>
+    <div class="bignums" style="margin-top:26px;">
+      <div class="bignum" style="min-width:auto;"><div class="l" style="font-size:0.68em;">Paper (Zenodo)</div><div class="mono" style="color:var(--ours); font-size:0.66em; margin-top:6px;">10.5281/zenodo.20786357</div></div>
+      <div class="bignum" style="min-width:auto;"><div class="l" style="font-size:0.68em;">Demo</div><div class="mono" style="color:var(--ours); font-size:0.66em; margin-top:6px;">demo-eight-olive-97.vercel.app</div></div>
+      <div class="bignum" style="min-width:auto;"><div class="l" style="font-size:0.68em;">Code</div><div class="mono" style="color:var(--ours); font-size:0.66em; margin-top:6px;">github.com/Kart-ing/ReCompress</div></div>
     </div>
-    <p class="muted mono center" style="margin-top:30px; font-size:0.62em;">ReCompress · The Token Company Compression Challenge · UC Berkeley AI Hackathon 2026</p>
+    <p class="muted mono center" style="margin-top:26px; font-size:0.6em;">ReCompress · The Token Company Compression Challenge · UC Berkeley AI Hackathon 2026</p>
   </section>
 
 </div></div>
@@ -243,15 +247,8 @@
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 <script>
   Reveal.initialize({
-    hash: true,
-    slideNumber: "c/t",
-    transition: "slide",
-    transitionSpeed: "fast",
-    width: 1280,
-    height: 720,
-    margin: 0.06,
-    controls: true,
-    progress: true,
+    hash: true, slideNumber: "c/t", transition: "slide", transitionSpeed: "fast",
+    width: 1280, height: 720, margin: 0.06, controls: true, progress: true,
   });
 </script>
 </body>
