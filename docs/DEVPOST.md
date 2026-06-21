@@ -1,104 +1,104 @@
 # ReCompress — Devpost submission
 
-> Paste each section into the matching Devpost field. Tagline + "Built With" + links are at the bottom.
+> Paste each section into the matching Devpost field. This covers the WHOLE project — both
+> acts and all five distillation experiments. Tagline + "Built With" + links at the bottom.
 
 ---
 
 ## Project name
-**ReCompress: a distilled 1.5B query-aware compressor that beats blind token deletion**
+**ReCompress: rewrite-don't-delete context compression, distilled to 1.5B and extended to flat-context multi-turn**
 
-## Tagline (one line — Devpost "tagline" field)
-A tiny offline model that reads your question, rewrites the context to keep only what matters, and beats The Token Company's bear-1.1 by ~50% on multi-hop QA at the same token budget.
+## Tagline (Devpost "tagline" field)
+A 1.5B model that compresses prompts by *rewriting* them for your question — beats The Token Company's bear by ~50% on multi-hop QA — and then powers a multi-turn memory that keeps a 12-turn chat flat (184 tok) while a naive agent balloons to 1,482.
 
 ---
 
 ## Inspiration
 
-The Token Company's **bear-1.1** compresses prompts by deleting low-value tokens — *character-for-character, blind to the query*. That's brilliant for speed and reuse, but it leaves two things on the table that deletion fundamentally **can't** do:
+The Token Company's **bear-1.1** compresses prompts by **deleting** low-value tokens — fast and lossless-by-design, but blind in two ways deletion structurally can't fix: **it can't read your question, and it can't rewrite.** We wanted to measure what those two abilities are worth — and prove you don't need a giant model to get them.
 
-1. **Query-aware selection** — if you know the question, you can drop entire irrelevant passages, not just stray tokens.
-2. **Dense rewriting** — verbose-but-relevant prose can be *paraphrased* into something far shorter; deletion can only cut, never compress an idea.
-
-We wanted to measure exactly how much those two levers are worth — and then prove you don't need a giant model to get them, by **distilling the capability into a 1.5B model that runs offline for cents.**
+Compression isn't only a single-prompt problem, though. In a long **conversation**, context grows every turn (O(n²) cost). So we built the project in **two acts**: Act 1 — a query-aware compressor distilled into a small offline model; Act 2 — a multi-turn memory ("Re:Zero") that uses that compressor to keep context flat forever.
 
 ## What it does
 
-ReCompress is a **query-aware context compressor**. Given a long context and a question, it:
-- **drops** passages irrelevant to the question (distractors), and
-- **densifies** the relevant ones into terse, information-packed sentences,
+**ReCompress is one system in two acts.**
 
-producing a much smaller context that a downstream LLM can still answer from. We then **distilled** this behavior from a frontier teacher (DeepSeek) into **Qwen2.5-1.5B + LoRA**, so the compressor is small, offline, and cheap — the same product category as bear, but query-aware.
+**Act 1 — single-shot compression.** Given a long context + a question, it drops the passages irrelevant to *that* question and **rewrites** the rest densely; a downstream LLM then answers. We distilled this behavior (from a DeepSeek teacher) into **Qwen2.5-1.5B + LoRA** so it runs offline and cheap.
 
-**Headline result** — distilled 1.5B vs bear-1.1, at *matched token budget*, QA-F1 with paired bootstrap 95% CIs, frozen DeepSeek solver as judge:
+**Act 2 — Re:Zero multi-turn memory.** A fixed ~300-token budget per turn — protected facts + a compressed checkpoint of older turns + the recent raw delta — so context stays flat instead of growing. **The checkpoints are compressed by the Act 1 model**, so the whole agent runs on our distilled compressor.
 
-| Benchmark | full context | **ReCompress (1.5B)** | bear-1.1 | Δ vs bear | significant? |
-|---|---|---|---|---|---|
-| **HotpotQA** | 0.877 | **0.704** | 0.452 | **+0.252 (+56%)** | ✅ yes (CI excludes 0) |
-| **2WikiMultiHop** | 0.573 | **0.570** | 0.390 | **+0.180 (+46%)** | ✅ yes — *and never trained on it* |
-| MuSiQue | 0.520 | 0.297 | 0.186 | +0.111 (+60%) | directional (n.s. at n=50) |
-| SQuAD v2 | 0.903 | 0.593 | 0.471 | +0.123 (+26%) | directional (n.s. at n=50) |
+**Headline results.**
 
-The win is **statistically significant on both multi-hop-with-distractor benchmarks** — exactly the regime where query-awareness should matter most. On 2Wiki the 1.5B nearly matches *full context* (0.570 vs 0.573) at a fraction of the tokens — and **it was only ever trained on HotpotQA-derived data**, so that's genuine cross-dataset generalization, not memorization.
+*Act 1 — distilled 1.5B vs bear-1.1, matched token budget, QA-F1, paired bootstrap 95% CI:*
 
-## How we built it
+| Benchmark | ReCompress 1.5B | bear-1.1 | Δ vs bear | significant? |
+|---|---|---|---|---|
+| **HotpotQA** | **0.704** | 0.452 | **+0.252 (+56%)** | ✅ yes |
+| **2Wiki** (never trained on) | **0.570** | 0.390 | **+0.180 (+46%)** | ✅ yes |
+| MuSiQue | 0.297 | 0.186 | +0.111 | directional |
+| SQuAD v2 | 0.593 | 0.471 | +0.123 | directional |
 
-A 3-API-call pipeline that we then **distill into weights**:
+*Act 2 — multi-turn HotpotQA, 6 turns, n=20:*
 
-```
-                        ┌─────────────────────────────────────┐
-  context + question ──>│  Teacher: DeepSeek (query-aware      │
-                        │  compress: drop distractors + densify)│
-                        └───────────────┬─────────────────────┘
-                                        │ 5,000 (text, q, compressed) pairs
-                                        ▼
-                        ┌─────────────────────────────────────┐
-                        │  Distill: LoRA fine-tune             │
-                        │  Qwen2.5-1.5B on Modal H100          │
-                        └───────────────┬─────────────────────┘
-                                        ▼
-   ReCompress-1.5B (offline)  ──>  Frozen DeepSeek solver  ──>  QA-F1
-   baseline: bear-1.1 (TheTokenCompany SDK), same budget
-```
+| Strategy | final F1 | context tokens |
+|---|---|---|
+| Naive (growing history) | 0.485 | 846 |
+| Re:Zero + DeepSeek API | 0.455 | 198 |
+| **Re:Zero + our distilled model** | **0.501** | **174** |
+| Re:Zero + bear | 0.472 | 257 |
 
-- **Teacher data:** DeepSeek generates 5,000 query-aware compressions of HotpotQA contexts (parallelized, filtered for answer-leaks).
-- **Student:** Qwen2.5-1.5B-Instruct, 4-bit + LoRA (r=32), trained with Unsloth on a Modal H100.
-- **Evaluation:** a **5-bar paired benchmark** — `none | bear | ours | bear→ours | ours→bear` — at matched token budget, scored by a frozen solver with **paired bootstrap 95% CIs** on every delta vs bear, across **4 QA benchmarks**.
-- **Cost:** the whole project (data gen + multiple training runs + 4-benchmark eval) was **~$10 of compute** — LoRA on a 4-bit 1.5B trains in ~15 min on one H100.
+Re:Zero powered by our distilled model wins on **both** axes — best answer quality at the fewest tokens. Over 12 turns a naive agent grows to **1,482** context tokens while Re:Zero stays flat at **~184 (8.1× less, and diverging).**
+
+## How we built it — and the five experiments behind the winning model
+
+The Act 1 distilled model is the result of **five distillation experiments**, each a deliberate test. We name them so the trajectory is legible (not "v1…v5"):
+
+| # | Experiment | What we changed | Outcome |
+|---|---|---|---|
+| 1 | **Spark** | first distill — 261 examples, LoRA r=16, 3 epochs | ❌ **Wash** vs bear (Δ=+0.06, CI includes 0): too little data |
+| 2 | **Bonfire** | scaled hard — 2,500 examples, r=64, 6 epochs | ❌ **Overfit**: eval loss bottomed at epoch 2 then climbed every epoch |
+| 3 | **Hearth** ⭐ | the balance — 5,000 examples, r=32, dropout 0.1, weight-decay, early-stop | ✅ **The winner** — +0.252 F1 (+56%) on HotpotQA, generalizes to 2Wiki |
+| 4 | **Oracle** | answer-grounded: best-of-4 candidates, kept only ones the solver answers right | ❌ **Lost to Hearth** (−0.05 F1) — selecting by a frozen judge overfits the judge |
+| 5 | **Oracle-Lite** | answer-grounded but greedy (no best-of-N) — to test if #4's loss was selection noise | ❌ **Also lost** — proving it wasn't a best-of-N artifact; answer-grounding just doesn't beat imitation |
+
+Plus a sixth idea we **designed, tested, and dropped — "Bear-Booster"**: train the small model to make *bear's* output better (optimize `bear(model(text))`). Our own data showed it's *dominated* — the standalone model beats `model→bear` on every benchmark, and a pre-processor is strictly costlier than bear alone. A clean negative result that sharpened the thesis: **rewriting must replace deletion, not augment it.**
+
+Pipeline: DeepSeek teacher → 5,000 query-aware compression pairs → LoRA fine-tune Qwen2.5-1.5B (4-bit, Unsloth) on a Modal H100 → eval vs bear (TTC SDK) at matched budget with bootstrap CIs across 4 benchmarks → wire the winner (**Hearth**) into Re:Zero as a pluggable backend → custom multi-turn benchmark. **~$10–15 total compute.**
 
 ## Challenges we ran into
 
-- **Distillation didn't work on the first try — twice.** v1 (261 examples, LoRA r=16) was a statistical *wash* vs bear (Δ=+0.063, CI included 0). v2 (2,500 examples, r=64, 6 epochs) **overfit hard** — eval loss bottomed at epoch 2 then climbed every epoch after. Only v3 (5,000 examples, r=32, 3 epochs, dropout 0.1, weight decay, early-stopping on best eval) crossed the line into a significant win. We kept the full failure trajectory as part of the research record.
-- **The Modal + Unsloth + trl stack is version-brittle.** We hit ~7 distinct runtime failures before the first clean train: an unsatisfiable dependency pin, a container that couldn't see the local data file, Unsloth's `formatting_func` contract, an eval-time CUDA OOM from full-vocab logit casting, and a `packing` incompatibility (needs flash-attn-2). Each is documented as a reproducibility note.
-- **A network drop killed a training run at 91%** — fixed by running detached so the H100 job survives local disconnects.
-- **We tested — and dropped — a second idea.** Our original thesis was to train the SLM to make *bear's* output better (`bear(SLM(text))`). Our own data proved it's **dominated**: the standalone model beats `ours→bear` on every benchmark, and a pre-processor is strictly slower + costlier than bear alone. We stopped before spending the full compute and recorded it as a negative result: *you can't fix blind deletion by pre-processing — query-aware rewriting must replace it.*
+- **Distillation failed twice before Hearth worked** (Spark wash → Bonfire overfit). Fixing it took the full anti-overfitting playbook: more data, lower rank, dropout, weight-decay, early-stopping on best-eval.
+- **A "smarter" idea (answer-grounded, Oracle/Oracle-Lite) lost — twice.** Optimizing against downstream answer success overfit the frozen solver and hurt out-of-distribution generalization. Documented as a negative result.
+- **The Modal + Unsloth + trl stack is version-brittle** — ~7 distinct runtime failures before the first clean train (dependency conflicts, container data paths, the `formatting_func` contract, eval-time CUDA OOM, a packing incompatibility). All written up as reproducibility notes.
+- **Integration:** wiring the Act 1 Modal model into Act 2's synchronous checkpoint loop without breaking either codebase.
 
 ## Accomplishments we're proud of
 
 - A **1.5B model that beats the challenge sponsor's own product** at matched budget, with statistical significance, that **generalizes to a benchmark it never trained on**.
-- **Research-grade rigor for a 24h hackathon**: paired bootstrap CIs on every claim, 4 benchmarks, honestly-labeled non-significant results, owned failure modes, and a documented dropped idea.
-- It runs **offline and cheap** — no per-token API fees, ~$10 to build the whole thing.
+- A **unified system**: the same distilled compressor wins as a single-shot compressor *and* as a multi-turn memory engine (beating both DeepSeek and bear there).
+- **Research-grade rigor in 24h**: bootstrap CIs on every claim, 5 named experiments with a clear winner, two documented negative results, a conceptual finding (the "deletion ceiling"), a 13-figure visualization suite, and a custom multi-turn benchmark.
 
 ## What we learned
 
-- **Query-aware *rewriting* beats blind *deletion*** at matched budget — most decisively exactly where there are distractors to drop (multi-hop QA).
-- **Stacking with bear hurts.** Running bear's deletion on top of our dense rewrite mangles it (significantly *worse* than bear alone on SQuAD). Rewriting and deletion are different contracts; you pick one.
-- **Small models can learn this** — but only with enough clean data and proper regularization; the v1→v3 arc is a textbook case of fixing a data-starved, then over-parameterized, model.
-- **Honesty is a feature.** Reporting what we *didn't* prove (2 of 4 benchmarks n.s., no latency win, no SOTA comparison) makes the parts we *did* prove credible.
+- **Query-aware *rewriting* beats blind *deletion*** at matched budget — most where there are distractors (multi-hop QA). On purely abstractive QA (MS MARCO) it ties bear — an honest boundary we report.
+- **You can't fix deletion by stacking it after rewriting** (`model→bear` < `model` everywhere) — the "deletion ceiling."
+- **Downstream-grounded distillation isn't free** — selecting by a frozen judge overfits it (Oracle/Oracle-Lite both lost to imitation-based Hearth).
+- **The same compressor composes** — single-shot quality transfers to keeping conversations flat.
 
 ## What's next
 
-- **Multi-turn compression (Act 2):** apply query-aware compression turn-by-turn in a long conversation so context stays flat instead of growing O(n²).
-- **Direct comparison to LLMLingua-2** — the closest prior work. Our differentiator: LLMLingua *deletes/classifies* tokens (extractive); we *rewrite* them (abstractive) and distilled it into a generative 1.5B, benchmarked head-to-head against bear.
-- **Scale the teacher data and ratios** beyond the 5,000 examples / 0.3 ratio / n=50 lab setting to push the directional wins (MuSiQue, SQuAD) into significance.
+- Direct comparison to **LLMLingua-2** (closest prior work — they *delete/classify* tokens; we *rewrite* and distilled it into a generative 1.5B).
+- Scale teacher data + ratios to push MuSiQue/SQuAD into significance.
+- A live demo of Re:Zero holding a long conversation flat in real time.
 
 ---
 
 ## "Built With"
-`python` · `qwen2.5-1.5b` · `lora` · `unsloth` · `modal` · `h100` · `deepseek-api` · `the-token-company-sdk` · `huggingface-datasets` · `hotpotqa` · `2wikimultihop` · `musique` · `squad` · `matplotlib`
+`python` · `qwen2.5-1.5b` · `lora` · `unsloth` · `modal` · `h100` · `deepseek-api` · `the-token-company-sdk` · `huggingface-datasets` · `hotpotqa` · `2wikimultihop` · `musique` · `squad` · `ms-marco` · `matplotlib`
 
 ## Links
-- **Code:** https://github.com/Kart-ing/ReCompress
-- **Trained adapters + full experiment archive (incl. failures):** in the repo (Git LFS)
+- **Code (both acts):** https://github.com/Kart-ing/ReCompress
+- **Trained adapters + full experiment archive (all 5 experiments, incl. failures) + 13 figures:** in the repo (Git LFS)
 
-## One-line differentiator (for the pitch + Q&A — keep this ready)
-> "LLMLingua **deletes** tokens; we **rewrite** them — and distilled that into a 1.5B that beats The Token Company's own bear head-to-head at matched budget, with confidence intervals, across four benchmarks."
+## One-line differentiator (keep ready for the pitch + Q&A)
+> "LLMLingua **deletes** tokens; we **rewrite** them — distilled into a 1.5B (after five experiments — Hearth won) that beats The Token Company's own bear head-to-head with CIs across 4 benchmarks, *and* powers a multi-turn memory that keeps a 12-turn chat flat at 184 tokens while a naive agent hits 1,482."

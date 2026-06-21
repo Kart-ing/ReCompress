@@ -1,16 +1,22 @@
 # ReCompress
 
-**A 1.5B model that compresses prompts by *rewriting* them for your question — and beats the deletion-only baseline at a matched token budget.**
+**Context compression that *rewrites* instead of *deletes* — distilled into a 1.5B model, then extended to keep multi-turn conversations flat.**
 
-> [The Token Company](https://thetokencompany.com)'s **bear-1.1** compresses prompts by **deleting** low-value tokens — character-for-character, query-blind, nothing paraphrased or generated. That's fast and lossless-by-design, but it's blind in two ways deletion structurally cannot fix: **it can't read your question, and it can't rewrite.** ReCompress adds exactly those two things — a single **query-aware** pass that drops passages irrelevant to *this* question and **densifies** the relevant prose — and then **distills** that behavior into a **Qwen2.5-1.5B-Instruct + LoRA** student so it runs offline and cheap, in the same product category as bear.
->
-> **Headline:** the distilled 1.5B beats bear-1.1 head-to-head at a matched token budget on multi-hop QA — **+0.252 F1 on HotpotQA (+56% relative, 95% CI excludes 0)**, and it **generalizes to a dataset it was never trained on** (2Wiki, +0.180 F1, +46%, CI excludes 0).
+ReCompress is one research project in **two acts**, both attacking the same problem — *sending fewer tokens to an LLM without losing the answer* — from two angles:
 
-*Built in 24h for the **Token Company Compression Challenge**, UC Berkeley AI Hackathon 2026. This README is also the research writeup — it preserves the full failure→success trajectory, not just the win.*
+| | **Act 1 — Single-shot compression** | **Act 2 — Re:Zero multi-turn memory** |
+|---|---|---|
+| Question | Can a small model compress *one* prompt better than blind deletion? | Can it keep a *long conversation* from growing O(n²)? |
+| Method | Query-aware **rewrite** (drop distractors + densify), distilled into **Qwen2.5-1.5B + LoRA** | A flat ~300-token memory (protected facts + compressed checkpoint + recent delta), whose checkpoints are compressed **by the Act 1 model** |
+| Headline | Beats [The Token Company](https://thetokencompany.com)'s **bear-1.1** by **+0.252 F1 on HotpotQA (+56%, CI excludes 0)**, generalizes zero-shot to 2Wiki (+46%) | Context stays **flat (~184 tok) while a naive agent grows to 1482 tok over 12 turns (8.1× less)** — at *higher* answer quality, with our distilled model as the engine |
+
+**The two acts are one system.** Act 1 builds a query-aware compressor and distills it into a small offline model. Act 2 makes that model the memory engine of a multi-turn agent — and the distilled compressor beats *both* the DeepSeek API and bear as the Act 2 backend. The thesis across both: **query-aware rewriting beats deletion, and a 1.5B can carry it — for single prompts and for whole conversations.**
+
+*Built in 24h for the **Token Company Compression Challenge**, UC Berkeley AI Hackathon 2026. This README is also the research writeup — it preserves the full failure→success trajectory across both acts, not just the wins.*
 
 ---
 
-## 1. Headline results
+## 1. Act 1 — Headline results (single-shot compression)
 
 Distilled **Qwen2.5-1.5B + LoRA** ("ours") vs **bear-1.1** ("bear"), at a **matched token budget** (ratio = 0.3), 50 seeded instances per benchmark, frozen DeepSeek solver, QA-F1, paired bootstrap 95% CI on the per-instance delta vs bear.
 
@@ -28,6 +34,27 @@ Distilled **Qwen2.5-1.5B + LoRA** ("ours") vs **bear-1.1** ("bear"), at a **matc
 **What the upper bound looks like.** The API teacher it distills from (DeepSeek, query-aware) beats bear by **+0.395 F1** on HotpotQA (`ours`=0.847 vs bear=0.452, CI (+0.259, +0.538)) — and at ~3.5% of the tokens it nearly matches the **full-context ceiling** (`none`=0.877). The 1.5B student recovers about **64%** of that frontier-model margin (0.252 / 0.395) while running on a single small open model.
 
 > On HotpotQA the budgets are: full context ≈ 1,364 tok → bear keeps ≈ 409 tok (30%) → **ours rewrites down to ≈ 48 tok (3.5%)** and is still **more accurate** than bear at 8× the tokens. Query-aware rewriting doesn't just compress harder; it compresses *better*, because it throws away the distractor passages bear faithfully preserves.
+
+---
+
+## 1b. Act 2 — Re:Zero multi-turn memory (the compressor, applied to conversations)
+
+Single-shot compression shrinks *one* prompt. But a long **conversation** has the opposite problem: context grows every turn, so cost scales O(n²). **Re:Zero** (Act 2, in `ACTII/`) is a multi-turn memory that holds a **fixed ~300-token budget** — protected facts ("trauma") + a compressed checkpoint of older turns + the recent raw delta — so context stays flat no matter how long the chat runs. The catch: *something* has to compress the checkpoints. **We use the Act 1 distilled model.**
+
+Combined benchmark (multi-turn HotpotQA, 6 turns, n=20; final-answer QA-F1 + context size at the last turn):
+
+| Strategy | final F1 | context tokens |
+|---|---:|---:|
+| Naive (full growing history) | 0.485 | 846 |
+| Re:Zero + DeepSeek API | 0.455 | 198 |
+| **Re:Zero + distilled-v3 (ours)** | **0.501** | **174** |
+| Re:Zero + bear | 0.472 | 257 |
+
+**Re:Zero powered by our distilled compressor wins on *both* axes** — the highest answer quality (0.501, beating even the full-history naive agent) at the *fewest* tokens (174). And per-turn, the gap compounds:
+
+> Over 12 turns, a **naive agent grows to 1,482 context tokens** while **Re:Zero stays flat at ~184 — 8.1× less, and diverging.** (`ACTII/results/token_trajectory.json`, figure `eval/figures/token_trajectory_line.png`.)
+
+This is the unifying result: the same 1.5B query-aware compressor that beats bear on single prompts (Act 1) also beats DeepSeek *and* bear as a conversational-memory engine (Act 2) — offline, at a fraction of the tokens.
 
 ---
 
