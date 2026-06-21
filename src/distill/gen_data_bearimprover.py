@@ -32,7 +32,7 @@ from src.act1.bear import compress_bear
 from src.act1.solve import solve
 from src.act1.metrics import qa_f1
 
-MAX_WORKERS = 8
+MAX_WORKERS = 96  # bumped from 8: DeepSeek allows ~2500 concurrent
 KEEP_THRESHOLD = 0.5   # keep a pair only if the answer survives bear with F1 >= this
 _MIN_OUT_TOKENS = 8
 

@@ -18,7 +18,7 @@ from src.act1.data import load_hotpotqa, context_to_text
 from src.act1.compress import compress_ours
 from src.act1.tokens import count_tokens
 
-MAX_WORKERS = 8
+MAX_WORKERS = 96  # bumped from 8: DeepSeek allows ~2500 concurrent
 
 
 def _gen_one(instance: dict, ratio: float, distill: bool = True) -> dict:

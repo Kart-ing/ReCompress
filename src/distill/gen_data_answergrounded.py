@@ -33,7 +33,8 @@ from src.act1.tokens import count_tokens, truncate_to_tokens
 from src.act1.solve import solve
 from src.act1.metrics import qa_f1
 
-MAX_WORKERS = 8
+MAX_WORKERS = 96   # DeepSeek V4 Flash allows ~2500 concurrent; 8 was a needless bottleneck.
+                   # 96 threads keeps ThreadPoolExecutor efficient (async needed beyond ~128).
 KEEP_THRESHOLD = 0.5   # keep an example only if its best candidate's answer-F1 >= this
 _MIN_OUT_TOKENS = 8
 
