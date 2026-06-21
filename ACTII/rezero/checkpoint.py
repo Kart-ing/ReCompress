@@ -55,9 +55,10 @@ class CheckpointStack:
 
 
 class CheckpointBuilder:
-    def __init__(self, goal: str, ratio: float = 0.20):
+    def __init__(self, goal: str, ratio: float = 0.20, use_llm: bool = True):
         self.goal = goal
         self.ratio = ratio
+        self.use_llm = use_llm
 
     def build(self, history: list[dict], trauma: str) -> str:
         if not history:
@@ -65,7 +66,7 @@ class CheckpointBuilder:
         full_text = "\n".join(
             f"{m['role'].upper()}: {m['content']}" for m in history
         )
-        compressed = compress(full_text, question=self.goal, ratio=self.ratio)
+        compressed = compress(full_text, question=self.goal, ratio=self.ratio, use_llm=self.use_llm, exclude=trauma)
         return self._enforce_cap(compressed)
 
     def _enforce_cap(self, text: str) -> str:

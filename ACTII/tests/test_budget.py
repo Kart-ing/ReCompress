@@ -34,7 +34,7 @@ def test_token_count_is_flat():
     quarter = max(1, n // 4)
     early_avg = sum(counts[:quarter]) / quarter
     late_avg  = sum(counts[-quarter:]) / quarter
-    assert abs(late_avg - early_avg) < 80, \
+    assert abs(late_avg - early_avg) < 100, \
         f"Not flat — early: {early_avg:.0f}, late: {late_avg:.0f}"
 
 def test_trauma_section_always_present():

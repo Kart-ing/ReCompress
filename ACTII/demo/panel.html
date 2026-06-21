@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RbD-Compress Live Panel</title>
+  <style>
+    body { font-family: monospace; padding: 1.5rem; background: #0f0f1a; color: #c2c0b6; }
+    h1   { color: #9F97EC; font-family: sans-serif; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .box  { background: #1a1a2e; border-radius: 8px; padding: 1rem; border: 1px solid #333; }
+    .box h3 { margin: 0 0 0.5rem; font-size: 0.75rem; text-transform: uppercase; }
+    .trauma-box     h3 { color: #F0997B; }
+    .checkpoint-box h3 { color: #5DCAA5; }
+    .delta-box      h3 { color: #AFA9EC; }
+    .box pre { margin: 0; white-space: pre-wrap; font-size: 0.8rem; color: #d0cfc5; }
+    .token-bar { background: #1a1a2e; border-radius: 8px; padding: 1rem; border: 1px solid #333; margin-bottom: 1rem; }
+    .token-bar h3 { color: #EF9F27; margin: 0 0 0.5rem; font-size: 0.75rem; text-transform: uppercase; }
+    .bar-wrap  { background: #333; border-radius: 4px; height: 20px; position: relative; }
+    .bar-fill  { background: #1D9E75; height: 100%; border-radius: 4px; transition: width 0.3s; }
+    .bar-label { position: absolute; right: 8px; top: 2px; font-size: 0.75rem; color: #fff; }
+    .controls  { margin-bottom: 1rem; }
+    button { background: #3A3A8A; color: #fff; border: none; border-radius: 6px;
+             padding: 0.5rem 1rem; cursor: pointer; font-size: 0.85rem; margin-right: 0.5rem; }
+    button:hover { background: #534AB7; }
+    #turn-label { color: #EF9F27; font-size: 0.85rem; margin-left: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>RbD-Compress — Live Panel</h1>
+  <div class="controls">
+    <button onclick="prevTurn()">← Prev</button>
+    <button onclick="nextTurn()">Next →</button>
+    <button onclick="resetTurns()">Reset</button>
+    <span id="turn-label">Turn 0 / 0</span>
+  </div>
+  <div class="token-bar">
+    <h3>Token budget used (≤300)</h3>
+    <div class="bar-wrap">
+      <div class="bar-fill" id="bar-fill" style="width:0%"></div>
+      <span class="bar-label" id="bar-label">0 / 300</span>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="box trauma-box">
+      <h3>Trauma Memory (≤50 tok)</h3>
+      <pre id="trauma-content">—</pre>
+    </div>
+    <div class="box checkpoint-box">
+      <h3>Checkpoint (≤150 tok)</h3>
+      <pre id="checkpoint-content">—</pre>
+    </div>
+    <div class="box delta-box">
+      <h3>Delta — current turn (≤100 tok)</h3>
+      <pre id="delta-content">—</pre>
+    </div>
+  </div>
+  <script>
+    // DATA_PLACEHOLDER replaced by generate_panel.py
+    // Defaults to [] so panel.html is safe to open before generate_panel.py runs
+    const DATA = DATA_PLACEHOLDER || [];
+    let currentTurn = -1;
+
+    function render(turn) {
+      if (!DATA.length) {
+        document.getElementById("turn-label").textContent = "No data — run generate_panel.py first";
+        return;
+      }
+      if (turn < 0 || turn >= DATA.length) return;
+      currentTurn = turn;
+      const d = DATA[turn];
+      document.getElementById("trauma-content").textContent     = d.trauma     || "—";
+      document.getElementById("checkpoint-content").textContent = d.checkpoint || "—";
+      document.getElementById("delta-content").textContent      = d.delta      || "—";
+      const pct = Math.min(100, Math.round((d.tokens / 300) * 100));
+      document.getElementById("bar-fill").style.width = pct + "%";
+      document.getElementById("bar-label").textContent = d.tokens + " / 300";
+      document.getElementById("turn-label").textContent = `Turn ${turn + 1} / ${DATA.length}`;
+    }
+
+    function nextTurn()  { render(currentTurn + 1); }
+    function prevTurn()  { render(currentTurn - 1); }
+    function resetTurns(){ render(0); }
+    render(0);
+  </script>
+</body>
+</html>
