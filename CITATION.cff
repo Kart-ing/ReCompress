@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use ReCompress, please cite it as below."
+title: "ReCompress: Query-Aware Rewriting and Tiered Memory for Efficient LLM Context Compression"
+abstract: >-
+  ReCompress is a two-component context-compression system. A query-aware rewriting
+  compressor, distilled into a 1.5B student (Qwen2.5-1.5B + LoRA), beats the deletion-based
+  bear-1.1 by +0.252 F1 on HotpotQA while emitting ~8.5x fewer tokens, and a tiered
+  multi-turn memory (RbD-Compress / Re:Zero) keeps the context sent to the solver flat across
+  a conversation. Built in 24h for The Token Company Compression Challenge at the UC Berkeley
+  AI Hackathon 2026.
+type: software
+authors:
+  - given-names: Parth
+    family-names: Kshirsagar
+    email: parth.kshirsagar1410@gmail.com
+  - given-names: Kartikey
+    family-names: Pandey
+    email: kartikeypandey18@gmail.com
+repository-code: "https://github.com/Kart-ing/ReCompress"
+url: "https://github.com/Kart-ing/ReCompress"
+license: CC-BY-4.0
+keywords:
+  - prompt compression
+  - query-aware rewriting
+  - multi-turn context management
+  - multi-hop question answering
+  - knowledge distillation
+  - large language models
+date-released: "2026-06-21"
