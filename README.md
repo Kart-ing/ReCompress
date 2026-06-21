@@ -24,10 +24,6 @@ ReCompress is one research project in **two acts**:
 
 ---
 
-## Architecture
-
-### Act 1 — single-shot query-aware compression
-
 ## What we built
 
 - **A distilled 1.5B query-aware compressor** (`recompress/`) — DeepSeek teacher → Qwen2.5-1.5B + LoRA on a Modal H100, ~$10 total. Runs offline.
