@@ -28,22 +28,6 @@ ReCompress is one research project in **two acts**:
 
 ### Act 1 — single-shot query-aware compression
 
-```mermaid
-flowchart TD
-    A[HotpotQA context + question] --> B[DeepSeek teacher\nquery-aware compress]
-    B --> C[5,000 training pairs\nfiltered for answer leakage]
-    C --> D[LoRA fine-tune\nQwen2.5-1.5B on Modal H100]
-    D --> E[Distilled student\n1.5B offline model]
-    A --> F[bear-1.1\nblind deletion baseline]
-    E --> G[Frozen DeepSeek solver]
-    F --> G
-    G --> H[QA-F1 vs ground truth]
-
-    style E fill:#E1F5EE,stroke:#0F6E56,color:#085041
-    style F fill:#FCEBEB,stroke:#A32D2D,color:#791F1F
-    style H fill:#E6F1FB,stroke:#185FA5,color:#0C447C
-```
-
 ## What we built
 
 - **A distilled 1.5B query-aware compressor** (`recompress/`) — DeepSeek teacher → Qwen2.5-1.5B + LoRA on a Modal H100, ~$10 total. Runs offline.
