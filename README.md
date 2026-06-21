@@ -85,6 +85,7 @@ flowchart LR
     style V3 fill:#E1F5EE,stroke:#0F6E56,color:#085041
 ```
 
+
 ## What we built
 
 - **A distilled 1.5B query-aware compressor** (`recompress/`) — DeepSeek teacher → Qwen2.5-1.5B + LoRA on a Modal H100, ~$10 total. Runs offline.
