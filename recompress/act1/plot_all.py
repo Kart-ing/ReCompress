@@ -190,7 +190,7 @@ def fig7_latency():
 
 
 def fig8_9_multiturn():
-    r = _load("ACTII/results/combined_benchmark.json")
+    r = _load("results/combined_benchmark.json")
     if not r:
         print("  (combined_benchmark.json not found — skipping multi-turn figs)")
         return
@@ -221,7 +221,7 @@ def fig8_9_multiturn():
 
 def fig10_token_trajectory():
     """The line graph: context tokens per turn — Naive grows, ReZero stays flat."""
-    r = _load("ACTII/results/token_trajectory.json")
+    r = _load("results/token_trajectory.json")
     if not r:
         print("  (token_trajectory.json not found — skipping line graph)")
         return

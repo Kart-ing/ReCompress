@@ -4,7 +4,7 @@ distilled v3 model (Act 1) on Modal.
 Proves the seam: ReZeroSession(backend="distilled") -> CheckpointBuilder ->
 compress_backend -> Compressor.compress_batch.remote (v3 on H100).
 
-Run from repo root:  modal run ACTII/experiments/integration_smoke.py
+Run from repo root:  modal run rezero/experiments/integration_smoke.py
 """
 from __future__ import annotations
 import os

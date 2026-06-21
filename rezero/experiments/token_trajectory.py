@@ -4,7 +4,7 @@ Records context tokens at EACH turn for Naive vs ReZero (deepseek/distilled/bear
 so we can plot the curve (not just final totals). This is the headline demo visual:
 naive context grows every turn; ReZero stays flat.
 
-Run from repo root:  modal run ACTII/experiments/token_trajectory.py --turns 12
+Run from repo root:  modal run rezero/experiments/token_trajectory.py --turns 12
 """
 from __future__ import annotations
 import os

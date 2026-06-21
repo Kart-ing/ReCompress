@@ -11,7 +11,7 @@ then asks the question. Compares memory strategies × compressor backends:
 Metrics per instance: final-answer F1 (rougeL), and tokens in the final solver prompt
 (flatness). Aggregated across N instances.
 
-Run from repo root:  modal run ACTII/experiments/combined_benchmark.py --n 30
+Run from repo root:  modal run rezero/experiments/combined_benchmark.py --n 30
 """
 from __future__ import annotations
 import os
