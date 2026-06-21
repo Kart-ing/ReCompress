@@ -92,6 +92,17 @@ flowchart LR
     style V3 fill:#E1F5EE,stroke:#0F6E56,color:#085041
 ```
 
+### The roles
+
+| Role | Model | Notes |
+|---|---|---|
+| Teacher (compressor) | DeepSeek (API) | query-aware; generates distillation data; also the standalone upper-bound bar |
+| Baseline | bear-1.1 (TheTokenCompany SDK) | blind deletion; the system we measure against |
+| **Student (the submission)** | **Qwen2.5-1.5B-Instruct + LoRA, 4-bit** | distilled on Modal H100; runs offline |
+| Solver (judge) | DeepSeek (API), **frozen** | identical across all bars — it only ever sees the compressed context, never the original |
+
+Holding the solver fixed is what makes the comparison fair: every bar is judged by the same downstream reader, so any F1 difference is attributable to the **compressor**, not the solver.
+
 ---
 
 ## 2. The idea
@@ -107,43 +118,7 @@ Retrieval-augmented prompts are mostly noise: 10 passages retrieved, 2 relevant,
 
 bear's design is honest about its blind spots ("nothing is paraphrased or generated"). ReCompress fills exactly that gap. It is **not** a competitor to bear — it's the abstractive, query-conditioned regime bear explicitly doesn't touch.
 
-The novelty for *this track* is the comparison, not the components. Query-aware compression (LongLLMLingua) and abstractive compression (RECOMP) both exist in the literature. What's underexplored is a clean, **paired, matched-budget, head-to-head against a deletion-only product on its own model**, isolating *query-awareness + rewriting* as the lever, in the *distractor* regime — and then showing a **1.5B student** can carry most of that win offline.
-
----
-
-## 3. Architecture
-
-Three API roles do the research; then the query-aware behavior is **distilled into weights** so the production path is one small model.
-
-```
-                        ┌──────────────────────────────────────────────┐
-   RESEARCH (API)       │                                              │
-                        │   TEACHER  = DeepSeek (query-aware)          │  the quality ceiling
-   context + question ──┼──▶  reads Q, drops distractors, densifies   │  (compress_ours)
-                        │            │                                  │
-                        │            ▼   (text, question, compressed)  │
-                        │      1000s of training pairs ────────────────┼──┐
-                        └──────────────────────────────────────────────┘  │
-                                                                           │  DISTILL
-   BASELINE (API/SDK)   bear-1.1  ── blind char-for-char deletion         │  (LoRA, H100)
-                                                                           ▼
-                        ┌──────────────────────────────────────────────────────────┐
-   PRODUCTION (weights) │  STUDENT = Qwen2.5-1.5B-Instruct + LoRA (4-bit)           │
-   context + question ──┼──▶  one offline pass, no API, ~cents to run             │  ← the submission
-                        └──────────────────────────────────────────────────────────┘
-                                            │ compressed context
-                                            ▼
-   JUDGE (frozen)       SOLVER = frozen DeepSeek  ──▶  answer  ──▶  QA-F1 vs gold
-```
-
-| Role | Model | Notes |
-|---|---|---|
-| Teacher (compressor) | DeepSeek (API) | query-aware; generates distillation data; also the standalone upper-bound bar |
-| Baseline | bear-1.1 (TheTokenCompany SDK) | blind deletion; the system we measure against |
-| **Student (the submission)** | **Qwen2.5-1.5B-Instruct + LoRA, 4-bit** | distilled on Modal H100; runs offline |
-| Solver (judge) | DeepSeek (API), **frozen** | identical across all bars — it only ever sees the compressed context, never the original |
-
-Holding the solver fixed is what makes the comparison fair: every bar is judged by the same downstream reader, so any F1 difference is attributable to the **compressor**, not the solver.
+The novelty for *this track* is the comparison, not the components. Query-aware compression (LongLLMLingua) and abstractive compression (RECOMP) both exist in the literature. What's underexplored is a clean, **paired, head-to-head against a deletion-only product on its own model** (same compression instruction, ours realizing ~8.5× fewer tokens), isolating *query-awareness + rewriting* as the lever, in the *distractor* regime — and then showing a **1.5B student** can carry most of that win offline.
 
 ---
 
