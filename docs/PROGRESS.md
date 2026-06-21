@@ -14,7 +14,7 @@
 
 ## What we're building
 
-**bear-1.1** (The Token Company) compresses prompts by deleting tokens character-for-character — blind to the query, can't rewrite. **ReCompress** adds the two things deletion can't:
+**bear-2** (The Token Company) compresses prompts by deleting tokens character-for-character — blind to the query, can't rewrite. **ReCompress** adds the two things deletion can't:
 1. **Query-aware selection** — reads the question, drops irrelevant passages
 2. **Dense rewrite** — densifies verbose-but-relevant prose
 
@@ -28,7 +28,7 @@ Then **distills** the query-aware compressor into a **1.5B model (Qwen2.5-1.5B-I
 |---|---|---|
 | Compressor (teacher) | DeepSeek V4 Pro (API) | ✅ wired |
 | Solver (frozen judge) | DeepSeek V4 Flash (API) | ✅ wired |
-| Baseline (blind deletion) | bear-1.1 (TheTokenCompany SDK) | ✅ wired |
+| Baseline (blind deletion) | bear-2 (TheTokenCompany SDK) | ✅ wired |
 | Student (distilled) | Qwen2.5-1.5B-Instruct + LoRA (Modal H100) | ⏳ scaffolded, not trained |
 
 ---
@@ -120,7 +120,7 @@ The teacher compresses to **~2.4% ratio** (not the 30% target — `compress_ours
 - ⚠️ `unsloth` left unpinned — GPU image build (pip resolution on CUDA) is the one thing untested; pin once a known-good version is confirmed on the build box for a reproducible demo.
 
 ### The real submission number
-**Step 5** is the number we walk into the booth with: *our distilled 1.5B query-aware model vs bear-1.1, both small, both cheap, head-to-head on HotpotQA.* If ours beats bear at matched budget — that's the win.
+**Step 5** is the number we walk into the booth with: *our distilled 1.5B query-aware model vs bear-2, both small, both cheap, head-to-head on HotpotQA.* If ours beats bear at matched budget — that's the win.
 
 ### Fallback
 If distillation eats the clock or the 1.5B can't learn it: the API-based 5-bar floor (step 1) still exists as a complete submission — weaker on economics but defensible.

@@ -50,7 +50,7 @@ def fig1_cross_benchmark_bars():
     benches = list(data)
     x = np.arange(len(benches)); w = 0.26
     fig, ax = plt.subplots(figsize=(11, 6))
-    for off, bar, lbl in [(-w, "none", "Full context"), (0, "ours", "ReCompress 1.5B"), (w, "bear", "bear-1.1")]:
+    for off, bar, lbl in [(-w, "none", "Full context"), (0, "ours", "ReCompress 1.5B"), (w, "bear", "bear-2")]:
         vals = [data[b]["bars"][bar]["mean_f1"] for b in benches]
         ax.bar(x + off, vals, w, label=lbl, color=C[bar])
         for i, v in enumerate(vals):

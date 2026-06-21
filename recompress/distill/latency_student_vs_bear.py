@@ -2,7 +2,7 @@
 
 Reviewer #4: the existing latency figure compares the DeepSeek *teacher* (API) to bear, not
 the artifact we'd actually ship. This times the distilled 1.5B student's per-instance
-generation on an H100 (model load excluded via @enter) against bear-1.1 on the SAME HotpotQA
+generation on an H100 (model load excluded via @enter) against bear-2 on the SAME HotpotQA
 instances. bear is non-autoregressive so it should be faster per call; the honest story is
 "the student trades some latency for an 8.5x token reduction and query-awareness."
 
@@ -36,7 +36,7 @@ def main(n: int = 30, ratio: float = 0.3, out: str = "results/latency_student_vs
     student_out = [t["n_out"] for t in timed]
 
     # --- bear: timed locally (SDK / blind deletion, non-autoregressive) ---
-    print("timing bear-1.1 locally...")
+    print("timing bear-2 locally...")
     bear_lat, bear_out = [], []
     for it in items:
         t0 = time.perf_counter()

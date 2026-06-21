@@ -19,7 +19,7 @@ ours = [cs["deepseek"]["ours_mean_f1"], cs["claude_sonnet"]["ours_mean_f1"]]
 bear = [cs["deepseek"]["bear_mean_f1"], cs["claude_sonnet"]["bear_mean_f1"]]
 x = range(len(judges)); w = 0.35
 ax.bar([i - w/2 for i in x], ours, w, label="ReCompress", color="#2a6f97")
-ax.bar([i + w/2 for i in x], bear, w, label="bear-1.1", color="#c1121f")
+ax.bar([i + w/2 for i in x], bear, w, label="bear-2", color="#c1121f")
 for i in x:
     d = ours[i] - bear[i]
     ax.text(i, max(ours[i], bear[i]) + 0.02, f"$\\Delta$=+{d:.3f}", ha="center", fontsize=10, fontweight="bold")
@@ -32,7 +32,7 @@ print("wrote cross_solver_bars.png")
 
 # --- Figure 2: mask-the-answer — unmasked vs masked for ours and bear ---
 fig, ax = plt.subplots(figsize=(7, 4.2))
-systems = ["ReCompress\n(abstractive)", "bear-1.1\n(extractive)"]
+systems = ["ReCompress\n(abstractive)", "bear-2\n(extractive)"]
 unm = [ms["ours"]["unmasked_f1"], ms["bear"]["unmasked_f1"]]
 msk = [ms["ours"]["masked_f1"], ms["bear"]["masked_f1"]]
 x = range(len(systems)); w = 0.35

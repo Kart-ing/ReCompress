@@ -70,7 +70,7 @@ export default function Honesty() {
         </button>
         <div className="mask-grid" style={{ marginTop: 16 }}>
           <FBar label="ReCompress (abstractive)" from={MASK.ours.unmasked} to={MASK.ours.masked} masked={masked} color="var(--ours)" />
-          <FBar label="bear-1.1 (extractive)" from={MASK.bear.unmasked} to={MASK.bear.masked} masked={masked} color="var(--bear)" />
+          <FBar label="bear-2 (extractive)" from={MASK.bear.unmasked} to={MASK.bear.masked} masked={masked} color="var(--bear)" />
         </div>
         <div className="caption warn">
           Masking drops <b>our</b> F1 by {Math.round(MASK.ours.dropPct * 100)}% vs bear's{" "}

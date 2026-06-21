@@ -1,6 +1,6 @@
 # Re:Zero — Query-Aware Compression Beyond Deletion — Our Entry
 
-> **One line:** The Token Company's **bear-1.1** compresses prompts by **deleting** low-value tokens — explicitly *character-for-character, nothing summarized, paraphrased, or generated.* That's fast and lossless-by-design, but it's **blind in two ways deletion structurally cannot fix: it can't read your question, and it can't rewrite.** We build a **single query-aware SLM pass** that does exactly those two things — drops passages irrelevant to *this* question, and densifies verbose-but-relevant prose — and we prove it head-to-head **on their own model** on multi-hop + distractor tasks where blind deletion provably fails. Then the same engine becomes **Re:Zero**: a conversational memory that keeps you under the context window at turn 50 — a compressed *checkpoint* + a protected *trauma memory* + a small *delta* instead of ballooning history. **Headline: query-aware compression beats blind deletion at matched budget, on bear-1.1.**
+> **One line:** The Token Company's **bear-2** compresses prompts by **deleting** low-value tokens — explicitly *character-for-character, nothing summarized, paraphrased, or generated.* That's fast and lossless-by-design, but it's **blind in two ways deletion structurally cannot fix: it can't read your question, and it can't rewrite.** We build a **single query-aware SLM pass** that does exactly those two things — drops passages irrelevant to *this* question, and densifies verbose-but-relevant prose — and we prove it head-to-head **on their own model** on multi-hop + distractor tasks where blind deletion provably fails. Then the same engine becomes **Re:Zero**: a conversational memory that keeps you under the context window at turn 50 — a compressed *checkpoint* + a protected *trauma memory* + a small *delta* instead of ballooning history. **Headline: query-aware compression beats blind deletion at matched budget, on bear-2.**
 
 **Event:** UC Berkeley AI Hackathon 2026 (June 20–21, 24h, team of 4)
 **Track:** **The Token Company Compression Challenge** (1st: $2,000 + Claude Code 5× Max 6mo/person + MTS interview · 2nd: $1,000) — judged on **depth of research, ingenuity, creativity**
@@ -44,7 +44,7 @@ From their prompt:
 
 | Piece | What it does | Novelty (honest, post-review) | Role |
 |---|---|---|---|
-| **bear-1.1 (their model)** | Deletes low-value tokens, char-for-char. Fast, lossless-by-design, blind to query. | Theirs — the baseline we measure against. | Act 1 baseline bar |
+| **bear-2 (their model)** | Deletes low-value tokens, char-for-char. Fast, lossless-by-design, blind to query. | Theirs — the baseline we measure against. | Act 1 baseline bar |
 | **Query-aware selection** | Reads the question; drops passages irrelevant to it (distractors blind deletion keeps). | **Exists** (LongLLMLingua is query-aware). Our angle: head-to-head *vs bear specifically*, on their model, in the distractor regime. | Act 1 "ours" |
 | **Dense rewrite** | Rewrites verbose-but-relevant prose densely — the paraphrase bear refuses to do. | **Exists** (RECOMP abstractive, etc.). Prior art finds extractive often ≥ abstractive — so we **test, not assume**, and report honestly. | Act 1 "ours" |
 | **Quality gate (frontier, offline)** | Detects when the answer no longer follows the compressed prompt; **re-runs compression at a softer ratio.** A floor — *not* a magic restorer. | Standard eval-time check. | Act 1 credibility |
@@ -101,7 +101,7 @@ Subaru carries a **compressed understanding forward** (checkpoint), **a few thin
  │  long prompt + question ─►[ ONE query-aware SLM pass ]─► compressed                │
  │                              (drop off-topic passages + densify verbose prose)     │
  │                                                                            │        │
- │  baseline:  bear-1.1 alone (char-for-char deletion, blind to question)     ▼        │
+ │  baseline:  bear-2 alone (char-for-char deletion, blind to question)     ▼        │
  │                                                        [ SOLVER: frozen DeepSeek ]  │
  │  ALSO TESTED (present only if it compounds): bear+ours, ours+bear          │        │
  │                                                                            ▼        │
@@ -124,7 +124,7 @@ Subaru carries a **compressed understanding forward** (checkpoint), **a few thin
 ### Models (best/cheapest — no track politics)
 | Role | Model | Why |
 |---|---|---|
-| **Baseline (deletion)** | **bear-1.1** (The Token Company) | their model; "ours vs bear" is literal on their product |
+| **Baseline (deletion)** | **bear-2** (The Token Company) | their model; "ours vs bear" is literal on their product |
 | **Frozen solver** (answers from compressed context — the quality judge) | **DeepSeek V4 Flash** | cheap, fast, frozen for consistent measurement |
 | **Our compressor** (query-aware select + dense rewrite — one pass) | **DeepSeek V4 Pro** | strong + cheap; the "intelligence" that reads the question |
 | **Quality gate** (offline) | **frontier (Claude Sonnet; Opus for final stamp)** | strongest floor judge; **eval-time only, not in the shipped hot path** |
@@ -197,7 +197,7 @@ Only if floor+ceiling locked. Brief doesn't require weights.
 | # | Component | Effort |
 |---|---|---|
 | 0 | **§5 5-bar validation on 50 HotpotQA** — decide PASS/BONUS/order | **2h, do first** |
-| 1 | bear-1.1 access wired + deletion output | 0.5–1h |
+| 1 | bear-2 access wired + deletion output | 0.5–1h |
 | 2 | Benchmark data + metric on uncompressed context (2 subtasks) | 1–2h |
 | 3 | `compress_ours(text, question, ratio)` — query-aware select + dense rewrite, **ours-first** | 1–2h |
 | 4 | `evaluate(method) → (acc, ratio)` — compress → solve → parse → score → real token count | 2–3h |
@@ -228,7 +228,7 @@ Trophy → Re:Zero multi-turn (ship single-prompt) → §3.5 micro-claim → few
 | Stream | Owner | Deliverable |
 |---|---|---|
 | **B. Compressor + eval harness** | full-stack | benchmark + metrics, `compress_ours()` (ours-first), `evaluate()→(acc,ratio)`, token counting, Arize. *Critical path — owns §5 + FLOOR.* |
-| **D. bear wiring + baselines + gate + pitch** | you | bear-1.1 integration, truncation baseline, offline frontier gate, net-cost ledger, pitch, booth |
+| **D. bear wiring + baselines + gate + pitch** | you | bear-2 integration, truncation baseline, offline frontier gate, net-cost ledger, pitch, booth |
 | **A. Re:Zero engine** | AI/agents | checkpoint builder, trauma memory, delta, turn-15 probe, §3.5 measurement — *on B's compressor* |
 | **C. Demo surface (HTML)** | 3D/creative | 5-bar headline chart, before/after text, token-per-turn flattening curve, checkpoint+trauma panel |
 
@@ -255,7 +255,7 @@ Trophy → Re:Zero multi-turn (ship single-prompt) → §3.5 micro-claim → few
 
 ## 11. The 3-minute pitch (reframed)
 
-1. **Hook (their model, honest):** "bear-1.1 deletes low-value tokens — character-for-character, nothing paraphrased or generated. Fast, lossless-by-design. But that means it's blind two ways it *can't* fix: it can't read your question, and it can't rewrite. So we built the one pass that does both."
+1. **Hook (their model, honest):** "bear-2 deletes low-value tokens — character-for-character, nothing paraphrased or generated. Fast, lossless-by-design. But that means it's blind two ways it *can't* fix: it can't read your question, and it can't rewrite. So we built the one pass that does both."
 2. **The floor (proof, on their model):** "On HotpotQA — multi-hop, full of distractor passages — at matched token budget, our query-aware pass **beats blind deletion**, because it drops the off-topic passages bear keeps and condenses the verbose ones it can't touch. Paired, with CIs, in Arize. We're not replacing bear — we're covering the regime they *say* they don't: paraphrase and query-awareness."
 3. **The gate (credibility):** "And it's safe — an offline gate checks the answer still follows; if not, it recompresses softer. A real quality floor, not a magic restorer."
 4. **The ingenuity (Re:Zero — the live demo):** "Same engine, now across a *conversation*. Instead of re-paying ~O(n²) for history, we keep a compressed **checkpoint**, a protected **trauma memory** of never-forget facts, and a small **delta**. Watch per-turn cost: naive climbs, ours stays flat — and here's the turn-15 probe proving we don't drop what matters. The key point caching can't touch: **we keep you under the context window at turn 50.** And we stack on caching."
@@ -266,7 +266,7 @@ Trophy → Re:Zero multi-turn (ship single-prompt) → §3.5 micro-claim → few
 ## 12. Open questions (decide / confirm)
 
 - **Q1.** Confirm headline = **`ours` (query-aware) > `bear` (deletion) at matched budget** on multi-hop+distractor data. `bear+ours` is a tested hypothesis, shown only if §5b passes. (This is the v6 reframe — confirm you're good with demoting "stacked.")
-- **Q2.** bear-1.1 access — confirmed API/weights + rate limits? (Affects pre-computing the benchmark offline.)
+- **Q2.** bear-2 access — confirmed API/weights + rate limits? (Affects pre-computing the benchmark offline.)
 - **Q3.** Run the **§5 2-hour validation experiment first**, before any real build? (Both reviews: yes. Strongly recommend.)
 - **Q4.** Gate model — Sonnet (cheap, for the loop) + Opus (final stamp), or Opus throughout?
 - **Q5.** Re:Zero demo — synthetic scripted conversation, or a real multi-hop task across turns? (Real is more convincing if time allows.)

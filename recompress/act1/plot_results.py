@@ -44,7 +44,7 @@ def plot(out_png: str = "results/cross_benchmark.png"):
     w = 0.26
     ax1.bar(x - w, none_f1, w, label="Full context (ceiling)", color="#9ca3af")
     ax1.bar(x, ours_f1, w, label="Distilled 1.5B (ours)", color="#2563eb")
-    ax1.bar(x + w, bear_f1, w, label="bear-1.1 (blind deletion)", color="#dc2626")
+    ax1.bar(x + w, bear_f1, w, label="bear-2 (blind deletion)", color="#dc2626")
     for i, (o, b) in enumerate(zip(ours_f1, bear_f1)):
         ax1.text(i, o + 0.015, f"{o:.2f}", ha="center", fontsize=9, fontweight="bold", color="#2563eb")
         ax1.text(i + w, b + 0.015, f"{b:.2f}", ha="center", fontsize=8, color="#dc2626")
@@ -75,7 +75,7 @@ def plot(out_png: str = "results/cross_benchmark.png"):
     ax2.set_title("Improvement over bear (95% CI; green = CI excludes 0)", fontsize=11)
     ax2.grid(axis="y", alpha=0.3)
 
-    fig.suptitle("ReCompress — distilled query-aware 1.5B vs bear-1.1 across benchmarks",
+    fig.suptitle("ReCompress — distilled query-aware 1.5B vs bear-2 across benchmarks",
                  fontsize=13, fontweight="bold")
     fig.tight_layout(rect=[0, 0, 1, 0.96])
     Path(out_png).parent.mkdir(parents=True, exist_ok=True)

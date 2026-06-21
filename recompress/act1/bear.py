@@ -1,4 +1,4 @@
-"""bear-1.1 baseline: blind character-for-character deletion.
+"""bear-2 baseline: blind character-for-character deletion.
 PRD §2: bear deletes low-value tokens, char-for-char, blind to the query.
 Uses the official TheTokenCompany SDK.
 

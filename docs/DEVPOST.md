@@ -15,7 +15,7 @@ A query-aware rewriting layer that extends compression into the regime deletion 
 
 ## Inspiration
 
-The Token Company's **bear-1.1** compresses prompts by **deleting** low-value tokens — fast and lossless-by-design, but blind in two ways deletion structurally can't fix: **it can't read your question, and it can't rewrite.** We wanted to measure what those two abilities are worth — and prove you don't need a giant model to get them.
+The Token Company's **bear-2** compresses prompts by **deleting** low-value tokens — fast and lossless-by-design, but blind in two ways deletion structurally can't fix: **it can't read your question, and it can't rewrite.** We wanted to measure what those two abilities are worth — and prove you don't need a giant model to get them.
 
 Compression isn't only a single-prompt problem, though. In a long **conversation**, context grows every turn (O(n²) cost). So we built the project in **two acts**: Act 1 — a query-aware compressor distilled into a small offline model; Act 2 — a multi-turn memory ("Re:Zero") that uses that compressor to keep context flat forever.
 
@@ -29,9 +29,9 @@ Compression isn't only a single-prompt problem, though. In a long **conversation
 
 **Headline results.**
 
-*Act 1 — distilled 1.5B vs bear-1.1, same compression instruction (ours realizes ~8.5× fewer tokens: ~48 vs ~409 on HotpotQA), QA-F1, paired bootstrap 95% CI:*
+*Act 1 — distilled 1.5B vs bear-2, same compression instruction (ours realizes ~8.5× fewer tokens: ~48 vs ~409 on HotpotQA), QA-F1, paired bootstrap 95% CI:*
 
-| Benchmark | ReCompress 1.5B | bear-1.1 | Δ vs bear | significant? |
+| Benchmark | ReCompress 1.5B | bear-2 | Δ vs bear | significant? |
 |---|---|---|---|---|
 | **HotpotQA** | **0.704** | 0.452 | **+0.252 (+56%)** | ✅ yes |
 | **2Wiki** (never trained on) | **0.570** | 0.390 | **+0.180 (+46%)** | ✅ yes |

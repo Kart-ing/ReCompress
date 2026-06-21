@@ -15,7 +15,7 @@ class Config:
     compressor_model: str = "deepseek-chat"          # V4 Pro — query-aware rewriter
     solver_model: str = "deepseek-chat"               # V4 Flash — frozen answerer (update ID when confirmed)
 
-    # bear-1.1 (TheTokenCompany SDK — no base URL, just api key)
+    # bear-2 (TheTokenCompany SDK — no base URL, just api key)
     bear_api_key: str = os.getenv("BEAR_API_KEY", "")
 
     # Anthropic (offline gate)

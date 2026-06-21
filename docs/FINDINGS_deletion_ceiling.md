@@ -1,7 +1,7 @@
 # The Deletion Ceiling: why extraction-based compression has a limit that rewriting does not
 
 **Claim.** Compression methods that only *delete or select* tokens from the source (extractive:
-bear-1.1, LLMLingua, LongLLMLingua, Selective-Context) have a hard ceiling on a class of
+bear-2, LLMLingua, LongLLMLingua, Selective-Context) have a hard ceiling on a class of
 queries. No amount of cleverness in *which* tokens to keep can cross it. Compression that
 *rewrites* (abstractive) is not bound by this ceiling. This is a structural property of the
 hypothesis class, not a quality gap between particular models.

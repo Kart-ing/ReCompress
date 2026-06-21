@@ -25,7 +25,7 @@ reader-facing names used in the README and Devpost.)
 |---|---|---|---|---|
 | Full context (`none`) | 0.877 | +0.425 | (+0.285, +0.571) | ✅ ceiling |
 | **API teacher (DeepSeek, query-aware)** | **0.847** | **+0.395** | **(+0.259, +0.538)** | ✅ **decisive** |
-| bear-1.1 (blind deletion) | 0.452 | — | — | baseline |
+| bear-2 (blind deletion) | 0.452 | — | — | baseline |
 | **Distilled 1.5B (v1, LoRA)** | **0.515** | **+0.063** | **(−0.098, +0.220)** | ❌ **wash (CI incl. 0)** |
 
 All @ ratio=0.3, 50 seeded HotpotQA-distractor instances, frozen DeepSeek solver, QA-F1.

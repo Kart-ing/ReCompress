@@ -36,7 +36,7 @@ export default function Hero() {
       <div className="stats">
         <div className="stat">
           <div className="num">+{f1}%</div>
-          <div className="lbl">F1 over bear-1.1 on HotpotQA (CI excludes 0)</div>
+          <div className="lbl">F1 over bear-2 on HotpotQA (CI excludes 0)</div>
         </div>
         <div className="stat">
           <div className="num">{tok}×</div>

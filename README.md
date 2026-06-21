@@ -6,7 +6,7 @@
 
 📄 **Paper:** [Zenodo (DOI: 10.5281/zenodo.20786357)](https://doi.org/10.5281/zenodo.20786357) · 🎛 **Interactive demo:** [demo-eight-olive-97.vercel.app](https://demo-eight-olive-97.vercel.app) · 🖥 **Slides:** [slides-teal-tau.vercel.app](https://slides-teal-tau.vercel.app) · 📓 **Reproduce in Colab:** [`notebooks/ReCompress_reproduce.ipynb`](https://colab.research.google.com/github/Kart-ing/ReCompress/blob/main/notebooks/ReCompress_reproduce.ipynb)
 
-The Token Company's **bear-1.1** is an excellent foundation: it compresses prompts by deleting low-value tokens — fast, verbatim-faithful, query-agnostic, and reusable across many questions. By design, it doesn't paraphrase or generate ("nothing is paraphrased or generated"). **ReCompress takes up exactly where that design leaves off:** a small, question-conditioned model that *rewrites* — dropping passages irrelevant to *this* question and densifying the rest — then we **distill that behavior into Qwen2.5-1.5B + LoRA** so it runs offline and cheap, in the same product category as bear. It is **not a competitor to bear; it's the abstractive, query-aware regime bear explicitly cedes**, packaged as a small model that complements a deletion-based compressor.
+The Token Company's **bear-2** is an excellent foundation: it compresses prompts by deleting low-value tokens — fast, verbatim-faithful, query-agnostic, and reusable across many questions. By design, it doesn't paraphrase or generate ("nothing is paraphrased or generated"). **ReCompress takes up exactly where that design leaves off:** a small, question-conditioned model that *rewrites* — dropping passages irrelevant to *this* question and densifying the rest — then we **distill that behavior into Qwen2.5-1.5B + LoRA** so it runs offline and cheap, in the same product category as bear. It is **not a competitor to bear; it's the abstractive, query-aware regime bear explicitly cedes**, packaged as a small model that complements a deletion-based compressor.
 
 ReCompress is one research project in **two acts**:
 
@@ -42,7 +42,7 @@ flowchart TD
     B --> C[5,000 training pairs\nfiltered for answer leakage]
     C --> D[LoRA fine-tune\nQwen2.5-1.5B on Modal H100]
     D --> E[Distilled student\n1.5B offline model]
-    A --> F[bear-1.1\nblind deletion baseline]
+    A --> F[bear-2\nblind deletion baseline]
     E --> G[Frozen DeepSeek solver]
     F --> G
     G --> H[QA-F1 vs ground truth]
@@ -97,7 +97,7 @@ flowchart LR
 | Role | Model | Notes |
 |---|---|---|
 | Teacher (compressor) | DeepSeek (API) | query-aware; generates distillation data; also the standalone upper-bound bar |
-| Baseline | bear-1.1 (TheTokenCompany SDK) | blind deletion; the system we measure against |
+| Baseline | bear-2 (TheTokenCompany SDK) | blind deletion; the system we measure against |
 | **Student (the submission)** | **Qwen2.5-1.5B-Instruct + LoRA, 4-bit** | distilled on Modal H100; runs offline |
 | Solver (judge) | DeepSeek (API), **frozen** | identical across all bars — it only ever sees the compressed context, never the original |
 
@@ -109,7 +109,7 @@ Holding the solver fixed is what makes the comparison fair: every bar is judged 
 
 Retrieval-augmented prompts are mostly noise: 10 passages retrieved, 2 relevant, 8 distractors. A QA model then has to find the needle. Two ways to shrink that prompt:
 
-| | **bear-1.1 (deletion)** | **ReCompress (rewrite)** |
+| | **bear-2 (deletion)** | **ReCompress (rewrite)** |
 |---|---|---|
 | Operation | Deletes low-value tokens, char-for-char | Reads the question, **drops** off-topic passages, **rewrites** the rest densely |
 | Sees the question? | **No** (query-agnostic) | **Yes** (query-aware) |
@@ -124,11 +124,11 @@ The novelty for *this track* is the comparison, not the components. Query-aware 
 
 ## Appendix: Methodology & Benchmarks
 
-*This is the rigorous evidence behind the collaborative summary above — full head-to-head tables, confidence intervals, the cross-solver audit, and the honest negative results. ReCompress is a research project first; nothing here is hidden. We measure against **bear-1.1** because it is the relevant deletion baseline (and the challenge sponsor's product), not to diminish it — the comparison is what isolates the value of query-aware rewriting.*
+*This is the rigorous evidence behind the collaborative summary above — full head-to-head tables, confidence intervals, the cross-solver audit, and the honest negative results. ReCompress is a research project first; nothing here is hidden. We measure against **bear-2** because it is the relevant deletion baseline (and the challenge sponsor's product), not to diminish it — the comparison is what isolates the value of query-aware rewriting.*
 
 ### A0. Act 1 — the headline, in one table
 
-Distilled **Qwen2.5-1.5B + LoRA** ("ours") vs **bear-1.1** ("bear"), same token *cap* (ratio = 0.3), 50 seeded instances/benchmark, frozen DeepSeek solver, QA-F1, paired bootstrap 95% CI on the per-instance delta. Ours wins while spending far *fewer* tokens than bear (budget note below).
+Distilled **Qwen2.5-1.5B + LoRA** ("ours") vs **bear-2** ("bear"), same token *cap* (ratio = 0.3), 50 seeded instances/benchmark, frozen DeepSeek solver, QA-F1, paired bootstrap 95% CI on the per-instance delta. Ours wins while spending far *fewer* tokens than bear (budget note below).
 
 | Benchmark | ours (F1) | bear (F1) | Δ vs bear | 95% CI | rel. | verdict |
 |---|---:|---:|---:|:--:|---:|:--:|
@@ -312,7 +312,7 @@ We'd rather state clearly what we did **not** prove.
 2. **Latency is not a win for us.** At the API level the teacher and bear are essentially tied (≈1.08s vs ≈1.05s mean per call — both dominated by a network round-trip; see `results/latency_api.json`). bear's structural speed edge (deletion is not autoregressive generation, and it amortizes over reuse) is real but is **not** demonstrated as a wall-clock win in our measurements. We claim an **accuracy/token** win, not a speed win.
 3. **Two of four benchmarks are not significant** (MuSiQue, SQuAD) — see §A3. Positive everywhere, proven on two.
 4. **Stacking fails, sometimes significantly** (§A3) — ReCompress replaces bear in this regime; it does not layer on it.
-5. **We did not beat published SOTA** (LLMLingua / LLMLingua-2 — multi-year Microsoft Research efforts). We beat **bear-1.1, the challenge sponsor's product**, which is the relevant comparison for this track. Our distinction vs LLMLingua is methodological: they **delete** tokens (extractive); we **rewrite** them (abstractive + query-aware).
+5. **We did not beat published SOTA** (LLMLingua / LLMLingua-2 — multi-year Microsoft Research efforts). We beat **bear-2, the challenge sponsor's product**, which is the relevant comparison for this track. Our distinction vs LLMLingua is methodological: they **delete** tokens (extractive); we **rewrite** them (abstractive + query-aware).
 6. **n=50 per benchmark, ratio=0.3 only.** A larger n and a ratio sweep would tighten the CIs and map where the win holds; out of scope for 24h.
 7. **The student over-compresses** (~3.8% vs the ~30% target). It wins anyway, but the budget knob isn't well-calibrated yet.
 8. **Much of the F1 is carried by the answer span, more for us than for bear** (§A4). 66% of ours' compressions contain the gold verbatim; masking the gold span drops ours' F1 by 65% (0.737→0.256) vs bear's 31% (0.452→0.314). So the headline margin is substantially "our query-aware compression keeps the answer-bearing span at 3.5% budget where bear's deletion at 30% loses it" — *better span selection*, not *better reasoning*. We measured this both ways and report it rather than letting it be inferred.
@@ -425,4 +425,4 @@ Archived on Zenodo with a DOI ([10.5281/zenodo.20786357](https://doi.org/10.5281
 
 ### TL;DR
 
-bear-1.1 deletes tokens blind to your question. ReCompress reads the question, drops the distractors, rewrites the rest — then distills that into a **1.5B model that runs offline for ~cents** and **beats bear while emitting ~8.5× fewer tokens** (+56% F1 on HotpotQA at ~48 tokens vs bear's ~409, +46% on a near-in-distribution dataset it never trained on, both with CIs excluding zero; directional-but-unproven on the dissimilar OOD sets). It took three distillation attempts — a data-starved wash, a capacity-driven overfit, then a regularized, early-stopped win — and we report all three, including the two benchmarks where the edge is real but not yet significant, the fact that stacking on bear doesn't work, and an answer-masking audit showing much of the win is *span selection* (we keep the answer-bearing span at a 3.5% budget where deletion truncates it). **What we proved: a small open model can carry most of a frontier compressor's query-aware edge, offline, for ~$10.**
+bear-2 deletes tokens blind to your question. ReCompress reads the question, drops the distractors, rewrites the rest — then distills that into a **1.5B model that runs offline for ~cents** and **beats bear while emitting ~8.5× fewer tokens** (+56% F1 on HotpotQA at ~48 tokens vs bear's ~409, +46% on a near-in-distribution dataset it never trained on, both with CIs excluding zero; directional-but-unproven on the dissimilar OOD sets). It took three distillation attempts — a data-starved wash, a capacity-driven overfit, then a regularized, early-stopped win — and we report all three, including the two benchmarks where the edge is real but not yet significant, the fact that stacking on bear doesn't work, and an answer-masking audit showing much of the win is *span selection* (we keep the answer-bearing span at a 3.5% budget where deletion truncates it). **What we proved: a small open model can carry most of a frontier compressor's query-aware edge, offline, for ~$10.**

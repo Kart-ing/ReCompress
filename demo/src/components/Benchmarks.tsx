@@ -25,7 +25,7 @@ export default function Benchmarks() {
       <h2>The win survives an independent judge</h2>
       <p className="lead">
         Distilled 1.5B (<b style={{ color: "var(--ours)" }}>ours</b>) vs{" "}
-        <b style={{ color: "var(--bear)" }}>bear-1.1</b> vs full context, QA-F1, 50 instances each.
+        <b style={{ color: "var(--bear)" }}>bear-2</b> vs full context, QA-F1, 50 instances each.
         The natural objection: our teacher and solver are both DeepSeek. So flip the judge to a
         model independent of both — Claude Sonnet — and watch the gap.
       </p>
@@ -56,7 +56,7 @@ export default function Benchmarks() {
               formatter={(v: number, n: string) => [v.toFixed(3), n]}
             />
             <Bar dataKey="none" name="full ctx" fill="#6b7280" radius={[4, 4, 0, 0]} isAnimationActive />
-            <Bar dataKey="bear" name="bear-1.1" fill="#ff5d5d" radius={[4, 4, 0, 0]} isAnimationActive />
+            <Bar dataKey="bear" name="bear-2" fill="#ff5d5d" radius={[4, 4, 0, 0]} isAnimationActive />
             <Bar dataKey="ours" name="ReCompress" fill="#4aa3ff" radius={[4, 4, 0, 0]} isAnimationActive>
               <LabelList dataKey="ours" position="top" formatter={(v: number) => v.toFixed(2)}
                 style={{ fill: "#4aa3ff", fontSize: 11, fontFamily: "var(--mono)" }} />
