@@ -83,11 +83,34 @@ def load_squad(n: int = CFG.n_instances, seed: int = CFG.seed) -> list[dict]:
     return out
 
 
+def load_msmarco(n: int = CFG.n_instances, seed: int = CFG.seed) -> list[dict]:
+    """MS MARCO v2.1 — LONG free-form answers (6-30 words), so QA-F1 is genuinely
+    continuous (not the near-binary entity-span case of HotpotQA/2Wiki/SQuAD).
+    10 passages per query (with distractors); skips 'No Answer Present.' rows."""
+    ds = load_dataset("microsoft/ms_marco", "v2.1", split="validation", streaming=True)
+    rows = _seeded_take(ds, max(n * 8, 800), n * 4, seed)  # over-pull; some have no answer
+    out = []
+    for ex in rows:
+        answers = [a for a in ex.get("answers", []) if a and a.strip() and a != "No Answer Present."]
+        if not answers:
+            continue
+        p = ex["passages"]
+        ctx = [{"title": "", "text": t} for t in p.get("passage_text", [])]
+        if not ctx:
+            continue
+        out.append({"id": str(ex["query_id"]), "question": ex["query"].strip(),
+                    "answer": answers[0], "context": ctx})
+        if len(out) >= n:
+            break
+    return out
+
+
 LOADERS = {
     "hotpotqa": load_hotpotqa,
     "2wiki": load_2wiki,
     "musique": load_musique,
     "squad": load_squad,
+    "msmarco": load_msmarco,
 }
 
 

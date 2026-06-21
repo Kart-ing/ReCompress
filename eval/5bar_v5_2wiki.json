@@ -465,7 +465,7 @@
     "bear": {
       "bar": "bear",
       "ratio": 0.3,
-      "mean_f1": 0.3838095238095238,
+      "mean_f1": 0.3904761904761904,
       "n_ok": 50,
       "n_err": 0,
       "per_instance": [
@@ -599,7 +599,7 @@
           "id": "ad66091e0bdb11eba7f7acde48001122",
           "question": "What is the place of birth of John F. Kennedy Jr.'s mother?",
           "gold": "Southampton",
-          "pred": "Not provided.",
+          "pred": "Not provided in context.",
           "f1": 0.0,
           "n_tokens_out": 339,
           "error": null
@@ -662,8 +662,8 @@
           "id": "4554d82a0bd911eba7f7acde48001122",
           "question": "Where was the performer of song Det Brinner Ett Ljus born?",
           "gold": "Hagfors",
-          "pred": "Hagfors Sweden",
-          "f1": 0.6666666666666666,
+          "pred": "Hagfors",
+          "f1": 1.0,
           "n_tokens_out": 382,
           "error": null
         },
@@ -1148,7 +1148,7 @@
           "id": "e0aef41508ae11ebbd83ac1f6bf848b6",
           "question": "Are both directors of films The Black Corsair (1937 Film) and Paths Of War from the same country?",
           "gold": "yes",
-          "pred": "Yes",
+          "pred": "Yes.",
           "f1": 1.0,
           "n_tokens_out": 48,
           "error": null
@@ -1481,7 +1481,7 @@
           "id": "26b866e6085c11ebbd5cac1f6bf848b6",
           "question": "Which film has the director born later, Jesse James' Women or Ride Lonesome?",
           "gold": "Ride Lonesome",
-          "pred": "Both films have the same director.",
+          "pred": "Both films have the same director, John Wayne.",
           "f1": 0.0,
           "n_tokens_out": 21,
           "error": null
@@ -2021,7 +2021,7 @@
           "id": "c818d9480baf11ebab90acde48001122",
           "question": "Who is Frederick Of Luxembourg's paternal grandfather?",
           "gold": "Wigeric of Lotharingia",
-          "pred": "Siegfried",
+          "pred": "Siegf",
           "f1": 0.0,
           "n_tokens_out": 10,
           "error": null
@@ -2301,30 +2301,30 @@
   },
   "deltas_vs_bear": {
     "none": {
-      "mean_delta": 0.18885714285714286,
-      "ci_lo": 0.05457142857142859,
-      "ci_hi": 0.3233833333333333,
+      "mean_delta": 0.18219047619047618,
+      "ci_lo": 0.04788809523809524,
+      "ci_hi": 0.31666666666666665,
       "excludes_zero": true,
       "n_paired": 50
     },
     "ours": {
-      "mean_delta": 0.1285714285714286,
-      "ci_lo": -0.019071428571428566,
-      "ci_hi": 0.26478571428571424,
+      "mean_delta": 0.1219047619047619,
+      "ci_lo": -0.031428571428571424,
+      "ci_hi": 0.2600238095238095,
       "excludes_zero": false,
       "n_paired": 50
     },
     "bear\u2192ours": {
-      "mean_delta": -0.041428571428571426,
-      "ci_lo": -0.17670238095238092,
-      "ci_hi": 0.09478571428571426,
+      "mean_delta": -0.048095238095238094,
+      "ci_lo": -0.19096428571428573,
+      "ci_hi": 0.09242857142857137,
       "excludes_zero": false,
       "n_paired": 50
     },
     "ours\u2192bear": {
-      "mean_delta": 0.0033333333333333357,
-      "ci_lo": -0.1233690476190476,
-      "ci_hi": 0.13333333333333333,
+      "mean_delta": -0.0033333333333333314,
+      "ci_lo": -0.13478571428571426,
+      "ci_hi": 0.13053571428571423,
       "excludes_zero": false,
       "n_paired": 50
     }
