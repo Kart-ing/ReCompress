@@ -18,6 +18,14 @@ authors:
     email: kartikeypandey18@gmail.com
 repository-code: "https://github.com/Kart-ing/ReCompress"
 url: "https://github.com/Kart-ing/ReCompress"
+doi: 10.5281/zenodo.20786357
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.20786357
+    description: "Zenodo archive of this version"
+  - type: doi
+    value: 10.5281/zenodo.20786356
+    description: "Concept DOI (always resolves to the latest version)"
 license: CC-BY-4.0
 keywords:
   - prompt compression

@@ -24,3 +24,6 @@ skills-lock.json
 *.log
 *.out
 templateArxiv.pdf
+demo/node_modules/
+demo/dist/
+demo/tsconfig.tsbuildinfo
