@@ -235,7 +235,7 @@ raw current-turn delta. The total prompt is bounded by per-tier token
 caps, with the checkpoint trimmed first if the total budget is exceeded.
 
 % TODO: insert pipeline figure once available
-% \begin{figure}[h]
+% \begin{figure}[!t]
 %   \centering
 %   \includegraphics[width=\linewidth]{media/pipeline.png}
 %   \caption{RbD-Compress pipeline. Each turn passes through Echidna,
@@ -311,7 +311,7 @@ with ThreadPoolExecutor (30 workers).
 
 \subsection{Single-Shot Compression}
 
-\begin{table}[h]
+\begin{table}[t]
 \caption{Five-bar benchmark on HotpotQA (50 instances, ratio=0.3).
 $\Delta$ is vs.\ bear-1.1. $\star$ = 95\% CI excludes zero.}
 \label{tab:fivebar}
@@ -329,7 +329,7 @@ ours$\rightarrow$bear        & 0.486 & +0.034 & ($-$0.084, +0.163) & --    \\
 \end{tabular}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[t]
 \caption{Distilled 1.5B student across four QA benchmarks (50 instances each,
 ratio=0.3). $\Delta$ and 95\% CI are the paired bootstrap delta vs.\ bear-1.1.
 $\star$ = CI excludes zero. The student trains \emph{only} on HotpotQA-derived
@@ -378,7 +378,7 @@ indicates that query-aware rewriting and deletion-based compression serve
 different operating regimes and are best treated as alternatives rather than
 a pipeline --- a point we develop in the Analysis.
 
-\begin{figure}[h]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.92\linewidth]{media/cross_benchmark_bars.png}
   \caption{Mean QA-F1 by benchmark for full context, bear-1.1, and the
@@ -388,7 +388,7 @@ a pipeline --- a point we develop in the Analysis.
   \label{fig:crossbench}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.92\linewidth]{media/delta_ci.png}
   \caption{Paired bootstrap deltas vs.\ bear-1.1 with 95\% confidence
@@ -398,7 +398,7 @@ a pipeline --- a point we develop in the Analysis.
   \label{fig:deltaci}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.49\linewidth]{media/dots_hotpotqa.png}\hfill
   \includegraphics[width=0.49\linewidth]{media/dots_2wiki.png}\\[2pt]
@@ -412,7 +412,7 @@ a pipeline --- a point we develop in the Analysis.
   \label{fig:dots}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.92\linewidth]{media/tokens_vs_f1.png}
   \caption{Quality vs.\ cost: mean QA-F1 against mean output tokens for each
@@ -423,7 +423,7 @@ a pipeline --- a point we develop in the Analysis.
 
 \subsection{Multi-Turn Compression}
 
-\begin{table}[h]
+\begin{table}[t]
 \caption{Multi-turn HotpotQA (6 turns per conversation, $n=20$).
 Final-answer QA-F1 and context tokens at the last turn. RbD-Compress with the
 distilled student is the only configuration that holds context flat
@@ -443,7 +443,7 @@ RbD-Compress + bear-1.1             & 0.472 & 257 \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[h]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.92\linewidth]{media/token_trajectory_line.png}
   \caption{Per-turn context cost over 12 turns. The naive full-history agent
@@ -453,7 +453,7 @@ RbD-Compress + bear-1.1             & 0.472 & 257 \\
   \label{fig:tokencurve}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.49\linewidth]{media/multiturn_tokens.png}\hfill
   \includegraphics[width=0.49\linewidth]{media/multiturn_f1.png}
@@ -477,23 +477,13 @@ holding cost constant at no measurable accuracy cost, not raising accuracy.
 \subsection{Protected Buffer Ablation}
 
 We compare Variant A (trauma + checkpoint + delta) against Variant B (a single
-undifferentiated summary at the same total budget) across compression ratios
-(Figure~\ref{fig:variant}). The protected-buffer variant holds answer quality
-better as the checkpoint is squeezed, consistent with the hypothesis that
-isolating bridging facts into an uncompressed buffer lets the rest of the
-checkpoint be compressed more aggressively at equal task accuracy. We report
-this as a directional ablation at $n=20$ rather than a significance claim ---
-the sample is small and the per-ratio confidence intervals overlap.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.85\linewidth]{media/variant_compare.png}
-  \caption{Protected-buffer ablation: QA-F1 vs.\ checkpoint compression ratio
-  for Variant A (protected trauma buffer) and Variant B (single summary) at
-  matched total budget. Variant A degrades more gracefully as the checkpoint
-  tightens.}
-  \label{fig:variant}
-\end{figure}
+undifferentiated summary at the same total budget) across compression ratios.
+The protected-buffer variant holds answer quality better as the checkpoint is
+squeezed, consistent with the hypothesis that isolating bridging facts into an
+uncompressed buffer lets the rest of the checkpoint be compressed more
+aggressively at equal task accuracy. We report this as a directional ablation
+at $n=20$ rather than a significance claim --- the sample is small and the
+per-ratio confidence intervals overlap.
 
 \subsection{Cross-Solver, Answer-Leakage, and Faithfulness Audits}
 \label{sec:audits}
@@ -508,7 +498,7 @@ essentially unchanged: $\Delta = +0.288$ under the independent solver versus
 $+0.285$ in-family, with the 95\% CI excluding zero in both cases
 (Figure~\ref{fig:crosssolver}). The result is not a same-family artifact.
 
-\begin{figure}[h]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.49\linewidth]{media/cross_solver_bars.png}\hfill
   \includegraphics[width=0.49\linewidth]{media/mask_answer_bars.png}
@@ -545,7 +535,26 @@ climbed for the remaining four. Only version three crossed into statistical
 significance. The lesson is that this capability requires sufficient data to
 generalize and sufficient regularization to avoid overfitting.
 
-\begin{figure}[h]
+We also tested an alternative \emph{training objective}: rather than imitating
+the teacher's compression, select the teacher sample whose compression
+maximizes the downstream solver's F1 (answer-grounded distillation, v4 with
+best-of-$N$ and v5 with greedy selection plus a survival filter). This
+\emph{lost} to plain teacher-imitation on both HotpotQA and 2WikiMultiHop
+(Figure~\ref{fig:objective}) --- a clean negative result indicating that, at
+this scale, optimizing the student toward the solver overfits the judge,
+whereas imitating a strong query-aware teacher generalizes better.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.85\linewidth]{media/variant_compare.png}
+  \caption{Distillation objective study: teacher-imitation (v3) vs.\
+  answer-grounded selection (v4 best-of-$N$, v5 greedy+filter), QA-F1 vs.\
+  bear-1.1. Teacher-imitation wins on both benchmarks; answer-grounding is a
+  documented negative result.}
+  \label{fig:objective}
+\end{figure}
+
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.85\linewidth]{media/distill_trajectory.png}
   \caption{Distillation trajectory: $\Delta$ vs.\ bear-1.1 on HotpotQA across
@@ -584,7 +593,7 @@ advantage, not a speed advantage. For high-throughput, cacheable,
 verbatim-critical deployments, deletion remains the right tool; rewriting
 adds the query-specific regime it cedes.
 
-\begin{figure}[h]
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.7\linewidth]{media/latency_bars.png}
   \caption{Per-call API latency (mean), teacher vs.\ bear. Both are
@@ -645,6 +654,7 @@ bear-1.1 API access and for organizing the challenge.
 
 
 % =========================================================
+\clearpage
 \appendix
 % =========================================================
 
@@ -680,7 +690,7 @@ steps. Target under 150 tokens total.}
 \section{Distillation Training Trajectory}
 \label{app:distillation}
 
-\begin{table}[h]
+\begin{table}[t]
 \caption{Distillation training configurations and results on HotpotQA
 vs.\ bear-1.1. n.s. = not significant (CI includes zero).}
 \centering
@@ -698,7 +708,7 @@ v3 & 5,000 & 32 & 3 & \textbf{+0.252} ($\star$) \\
 
 \section{Re:Zero Analogy}
 
-\begin{table}[h]
+\begin{table}[t]
 \caption{Mapping between Re:Zero narrative elements and RbD-Compress
 components.}
 \centering
