@@ -108,7 +108,7 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--n", type=int, default=20)
     p.add_argument("--ratio", type=float, default=0.3)
-    p.add_argument("--out", default="eval/latency_api.json")
+    p.add_argument("--out", default="results/latency_api.json")
     args = p.parse_args()
     res = run_latency(n=args.n, ratio=args.ratio, out_path=args.out)
     print("\n" + "=" * 60)

@@ -20,10 +20,10 @@ import numpy as np
 
 # (label, results-json path) — edit/extend as needed
 SERIES_2WIKI = [
-    ("bear",            "eval/5bar_distilled_2wiki.json",     "bear"),
-    ("v3 (imitate)",    "eval/5bar_distilled_2wiki.json",     "ours"),
-    ("v4 (best-of-N)",  "eval/5bar_answergrounded_2wiki.json","ours"),
-    ("v5 (greedy+filt)","eval/5bar_v5_2wiki.json",            "ours"),
+    ("bear",            "results/5bar_distilled_2wiki.json",     "bear"),
+    ("v3 (imitate)",    "results/5bar_distilled_2wiki.json",     "ours"),
+    ("v4 (best-of-N)",  "results/5bar_answergrounded_2wiki.json","ours"),
+    ("v5 (greedy+filt)","results/5bar_v5_2wiki.json",            "ours"),
 ]
 
 
@@ -77,6 +77,6 @@ if __name__ == "__main__":
     p.add_argument("--benchmark", default="2wiki")
     p.add_argument("--out", default="")
     args = p.parse_args()
-    out = args.out or f"eval/distribution_{args.benchmark}.png"
+    out = args.out or f"results/distribution_{args.benchmark}.png"
     series = SERIES_2WIKI if args.benchmark == "2wiki" else SERIES_2WIKI
     plot(series, args.benchmark, out)

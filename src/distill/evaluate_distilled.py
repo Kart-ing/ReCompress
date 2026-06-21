@@ -155,7 +155,7 @@ def main(n: int = CFG.n_instances, ratio: float = 0.3, benchmark: str = "hotpotq
     benches = ["hotpotqa", "2wiki", "musique", "squad"] if benchmark == "all" else [benchmark]
     summary = {}
     for bm in benches:
-        out_path = out or f"eval/5bar_distilled_{bm}.json"
+        out_path = out or f"results/5bar_distilled_{bm}.json"
         print(f"\n{'#'*60}\n# BENCHMARK: {bm}\n{'#'*60}")
         res = run_5bar(ratio=ratio, n=n, out_path=out_path, benchmark=bm)
         _print_result(res)

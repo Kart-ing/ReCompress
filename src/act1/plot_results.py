@@ -1,5 +1,5 @@
 """Graph the cross-benchmark 5-bar results: distilled 1.5B 'ours' vs bear vs full-context,
-with paired-bootstrap CIs. Reads eval/5bar_distilled_<benchmark>.json files.
+with paired-bootstrap CIs. Reads results/5bar_distilled_<benchmark>.json files.
 
 Run: python -m src.act1.plot_results
 """
@@ -20,13 +20,13 @@ LABELS = {"hotpotqa": "HotpotQA\n(in-dist)", "2wiki": "2Wiki\n(cross)",
 def _load():
     data = {}
     for bm in BENCHMARKS:
-        p = Path(f"eval/5bar_distilled_{bm}.json")
+        p = Path(f"results/5bar_distilled_{bm}.json")
         if p.exists():
             data[bm] = json.loads(p.read_text())
     return data
 
 
-def plot(out_png: str = "eval/cross_benchmark.png"):
+def plot(out_png: str = "results/cross_benchmark.png"):
     data = _load()
     if not data:
         print("no result files yet")

@@ -95,8 +95,8 @@ def main(n: int = 30, max_turns: int = 6):
         print(f"  {k:22s} {mf:9.3f} {mt:11.0f}")
 
     out = "results/combined_benchmark.json"
-    os.makedirs(os.path.join(_ACTII, "results"), exist_ok=True)
-    with open(os.path.join(_ACTII, out), "w") as f:
+    os.makedirs(os.path.join(_REPO, "results"), exist_ok=True)
+    with open(os.path.join(_REPO, out), "w") as f:
         json.dump({"n": n, "max_turns": max_turns, "results": results}, f, indent=2)
     print(f"\nsaved {out}")
     print("\nKEY: Naive ctx grows with turns; ReZero stays flat. Does ReZero+distilled hold F1?")

@@ -124,7 +124,7 @@ def run_one_bar(bar_name: str, instances: list[dict], ratio: float, out_dir: str
 
 
 def run_5bar(ratio: float = 0.3, n: int = CFG.n_instances, out_path: str | None = None,
-             out_dir: str | None = "eval/partial") -> dict:
+             out_dir: str | None = "results/partial") -> dict:
     print(f"loading {n} hotpotqa instances...")
     instances = load_hotpotqa(n=n)
     print(f"loaded {len(instances)} instances")
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--ratio", type=float, default=0.3)
     p.add_argument("--n", type=int, default=CFG.n_instances)
-    p.add_argument("--out", default="eval/5bar_results.json")
+    p.add_argument("--out", default="results/5bar_results.json")
     args = p.parse_args()
     res = run_5bar(ratio=args.ratio, n=args.n, out_path=args.out)
     print("\n" + "=" * 60)

@@ -1,6 +1,6 @@
 """Comprehensive visualization suite for ReCompress.
 
-Generates a gallery of figures into eval/figures/:
+Generates a gallery of figures into results/figures/:
   1. cross_benchmark_bars.png    — grouped bars: full/ours/bear F1 per benchmark
   2. delta_ci.png                — Δ(ours-bear) with 95% CI per benchmark (forest-style)
   3. dots_<bench>.png            — per-instance F1 dot/strip plots (concentration)
@@ -23,7 +23,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-FIG = Path("eval/figures")
+FIG = Path("results/figures")
 BENCHES = ["hotpotqa", "2wiki", "musique", "squad"]
 NICE = {"hotpotqa": "HotpotQA", "2wiki": "2Wiki", "musique": "MuSiQue", "squad": "SQuAD v2",
         "msmarco": "MS MARCO"}
@@ -43,7 +43,7 @@ def _f1s(r, bar):
 
 
 def fig1_cross_benchmark_bars():
-    data = {b: _load(f"eval/5bar_distilled_{b}.json") for b in BENCHES}
+    data = {b: _load(f"results/5bar_distilled_{b}.json") for b in BENCHES}
     data = {b: r for b, r in data.items() if r}
     if not data:
         return
@@ -62,7 +62,7 @@ def fig1_cross_benchmark_bars():
 
 
 def fig2_delta_ci():
-    data = {b: _load(f"eval/5bar_distilled_{b}.json") for b in BENCHES}
+    data = {b: _load(f"results/5bar_distilled_{b}.json") for b in BENCHES}
     data = {b: r for b, r in data.items() if r}
     if not data:
         return
@@ -86,7 +86,7 @@ def fig2_delta_ci():
 
 def fig3_dots():
     for b in BENCHES:
-        r = _load(f"eval/5bar_distilled_{b}.json")
+        r = _load(f"results/5bar_distilled_{b}.json")
         if not r:
             continue
         fig, ax = plt.subplots(figsize=(10, 4.5))
@@ -109,7 +109,7 @@ def fig3_dots():
 def fig4_tokens_vs_f1():
     fig, ax = plt.subplots(figsize=(10, 6))
     for b in BENCHES:
-        r = _load(f"eval/5bar_distilled_{b}.json")
+        r = _load(f"results/5bar_distilled_{b}.json")
         if not r:
             continue
         for bar, mark in [("ours", "o"), ("bear", "x")]:
@@ -128,9 +128,9 @@ def fig5_variant_compare():
     # v3 vs v4 vs v5 vs bear on the benchmarks we have all of (hotpotqa, 2wiki)
     rows = []
     for b in ["hotpotqa", "2wiki"]:
-        v3 = _load(f"eval/5bar_distilled_{b}.json")
-        v4 = _load(f"eval/5bar_answergrounded_{b}.json")
-        v5 = _load(f"eval/5bar_v5_{b}.json")
+        v3 = _load(f"results/5bar_distilled_{b}.json")
+        v4 = _load(f"results/5bar_answergrounded_{b}.json")
+        v5 = _load(f"results/5bar_v5_{b}.json")
         if not (v3 and v4 and v5):
             continue
         rows.append((b, v3["bars"]["bear"]["mean_f1"], v3["bars"]["ours"]["mean_f1"],
@@ -155,7 +155,7 @@ def fig5_variant_compare():
 def fig6_distill_trajectory():
     # v1 wash -> v3 win, HotpotQA Δ vs bear
     v1 = _load("experiments/v1/eval/5bar_distilled_v1.json")
-    v3 = _load("eval/5bar_distilled_hotpotqa.json")
+    v3 = _load("results/5bar_distilled_hotpotqa.json")
     if not v3:
         return
     pts = []
@@ -175,7 +175,7 @@ def fig6_distill_trajectory():
 
 
 def fig7_latency():
-    r = _load("eval/latency_api.json")
+    r = _load("results/latency_api.json")
     if not r:
         return
     strat = list(r["strategies"].keys())

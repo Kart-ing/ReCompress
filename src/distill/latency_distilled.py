@@ -71,7 +71,7 @@ def run(n: int, ratio: float, out_path: str | None):
 
 
 @infer_app.local_entrypoint()
-def main(n: int = 20, ratio: float = 0.3, out: str = "eval/latency_distilled.json"):
+def main(n: int = 20, ratio: float = 0.3, out: str = "results/latency_distilled.json"):
     res = run(n=n, ratio=ratio, out_path=out)
     print("\n" + "=" * 60)
     print("DISTILLED LATENCY (GPU inference, per instance, model preloaded):")

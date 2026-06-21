@@ -55,8 +55,8 @@ def main(turns: int = 12, backends: str = "distilled"):
         print(f"  turn {i+1}/{len(convo)}: " +
               " | ".join(f"{k}={traj[k][-1]}" for k in sessions))
 
-    os.makedirs(os.path.join(_ACTII, "results"), exist_ok=True)
-    out = os.path.join(_ACTII, "results/token_trajectory.json")
+    os.makedirs(os.path.join(_REPO, "results"), exist_ok=True)
+    out = os.path.join(_REPO, "results/token_trajectory.json")
     with open(out, "w") as f:
         json.dump({"turns": len(convo), "trajectory": traj}, f, indent=2)
     print(f"\nsaved results/token_trajectory.json")
