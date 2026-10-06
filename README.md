@@ -1,10 +1,14 @@
 # ReCompress
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20786357.svg)](https://doi.org/10.5281/zenodo.20786357)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20787487.svg)](https://doi.org/10.5281/zenodo.20787487)
+
+🏆 **Won The Token Company's Best Compression Model prize, UC Berkeley AI Hackathon 2026, with Parth Kshirsagar.**
+
+**Authors:** Parth Sanjay Kshirsagar and Kartikey Pandey.
 
 **A query-aware *rewriting* layer that extends [The Token Company](https://thetokencompany.com)'s compression into the regime deletion can't reach — distilled into a 1.5B model, then carried into multi-turn conversations.**
 
-📄 **Paper:** [Zenodo (DOI: 10.5281/zenodo.20786357)](https://doi.org/10.5281/zenodo.20786357) · 🎛 **Interactive demo:** [demo-eight-olive-97.vercel.app](https://demo-eight-olive-97.vercel.app) · 🖥 **Slides:** [slides-teal-tau.vercel.app](https://slides-teal-tau.vercel.app) · 📓 **Reproduce in Colab:** [`notebooks/ReCompress_reproduce.ipynb`](https://colab.research.google.com/github/Kart-ing/ReCompress/blob/main/notebooks/ReCompress_reproduce.ipynb)
+📄 **Preprint (v2):** [Zenodo (DOI: 10.5281/zenodo.20787487)](https://doi.org/10.5281/zenodo.20787487) · 🎛 **Interactive demo:** [demo-eight-olive-97.vercel.app](https://demo-eight-olive-97.vercel.app) · 🖥 **Slides:** [slides-teal-tau.vercel.app](https://slides-teal-tau.vercel.app) · 📓 **Reproduce in Colab:** [`notebooks/ReCompress_reproduce.ipynb`](https://colab.research.google.com/github/Kart-ing/ReCompress/blob/main/notebooks/ReCompress_reproduce.ipynb)
 
 The Token Company's **bear-2** is an excellent foundation: it compresses prompts by deleting low-value tokens — fast, verbatim-faithful, query-agnostic, and reusable across many questions. By design, it doesn't paraphrase or generate ("nothing is paraphrased or generated"). **ReCompress takes up exactly where that design leaves off:** a small, question-conditioned model that *rewrites* — dropping passages irrelevant to *this* question and densifying the rest — then we **distill that behavior into Qwen2.5-1.5B + LoRA** so it runs offline and cheap, in the same product category as bear. It is **not a competitor to bear; it's the abstractive, query-aware regime bear explicitly cedes**, packaged as a small model that complements a deletion-based compressor.
 
@@ -407,7 +411,7 @@ modal run experiments/combined_benchmark.py --n 30 # Act1⇄Act2: -> results/com
 
 ## Cite
 
-Archived on Zenodo with a DOI ([10.5281/zenodo.20786357](https://doi.org/10.5281/zenodo.20786357)). GitHub also shows a "Cite this repository" button from [`CITATION.cff`](CITATION.cff).
+Archived on Zenodo with a DOI ([10.5281/zenodo.20787487](https://doi.org/10.5281/zenodo.20787487), v2). GitHub also shows a "Cite this repository" button from [`CITATION.cff`](CITATION.cff).
 
 ```bibtex
 @misc{kshirsagar_pandey_recompress_2026,
@@ -415,8 +419,8 @@ Archived on Zenodo with a DOI ([10.5281/zenodo.20786357](https://doi.org/10.5281
   author       = {Kshirsagar, Parth Sanjay and Pandey, Kartikey},
   year         = {2026},
   publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.20786357},
-  url          = {https://doi.org/10.5281/zenodo.20786357},
+  doi          = {10.5281/zenodo.20787487},
+  url          = {https://doi.org/10.5281/zenodo.20787487},
   note         = {UC Berkeley AI Hackathon 2026 --- The Token Company Compression Challenge}
 }
 ```
