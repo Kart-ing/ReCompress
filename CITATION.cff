@@ -15,13 +15,12 @@ authors:
     email: parth.kshirsagar1410@gmail.com
   - given-names: Kartikey
     family-names: Pandey
-    email: kartikeypandey18@gmail.com
 repository-code: "https://github.com/Kart-ing/ReCompress"
 url: "https://github.com/Kart-ing/ReCompress"
-doi: 10.5281/zenodo.20786357
+doi: 10.5281/zenodo.20787487
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.20786357
+    value: 10.5281/zenodo.20787487
     description: "Zenodo archive of this version"
   - type: doi
     value: 10.5281/zenodo.20786356
